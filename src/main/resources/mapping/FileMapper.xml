@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="org.jetbrains.hadoop_netdisk.mapper.FileMapper">
+
+    <resultMap id="FileResultMap" type="org.jetbrains.hadoop_netdisk.entity.File">
+        <result column="origin_path" jdbcType="VARCHAR" property="origin_path" />
+        <result column="abs_path" jdbcType="VARCHAR" property="abs_path" />
+        <result column="file_name" jdbcType="VARCHAR" property="file_name" />
+        <result column="owner" jdbcType="VARCHAR" property="owner" />
+        <result column="file_size" jdbcType="NUMERIC" property="file_size" />
+        <result column="upload_date" jdbcType="DATE" property="upload_date" />
+        <result column="is_deleted" jdbcType="BOOLEAN" property="is_deleted" />
+        <result column="delete_date" jdbcType="DATE" property="delete_date" />
+        <result column="is_shared" jdbcType="BOOLEAN" property="is_shared" />
+        <result column="share_date" jdbcType="DATE" property="share_date" />
+        <result column="share_expire_time" jdbcType="DATE" property="share_expire_time" />
+        <result column="share_encrypt" jdbcType="BOOLEAN" property="share_encrypt" />
+        <result column="share_encrypt_code" jdbcType="VARCHAR" property="share_encrypt_code" />
+    </resultMap>
+
+    <select id="query" resultType="org.jetbrains.hadoop_netdisk.entity.File">
+        SELECT * FROM hadoop.files WHERE origin_path = #{origin_path};
+    </select>
+
+    <delete id="delete">
+        DELETE FROM hadoop.files WHERE origin_path = #{origin_path};
+    </delete>
+
+    <insert id="add">
+        INSERT INTO hadoop.files(origin_path, full_name, file_name, owner, file_size, upload_date,
+                                 delete_date, share_date, share_expire_time)
+        VALUES (#{origin_path}, #{abs_path}, #{file_name}, #{owner}, #{file_size}, #{upload_date},
+                #{delete_date}, #{share_date}, #{share_expire_time});
+    </insert>
+</mapper>
