@@ -1,6 +1,6 @@
 package org.jetbrains.hadoop_netdisk.mapper;
 
-import org.jetbrains.hadoop_netdisk.entity.User;
+import org.jetbrains.hadoop_netdisk.model.User;
 import org.springframework.stereotype.Repository;
 
 /**

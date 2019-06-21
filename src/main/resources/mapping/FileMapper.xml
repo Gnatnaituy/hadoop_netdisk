@@ -5,34 +5,66 @@
 
 <mapper namespace="org.jetbrains.hadoop_netdisk.mapper.FileMapper">
 
-    <resultMap id="FileResultMap" type="org.jetbrains.hadoop_netdisk.entity.File">
-        <result column="origin_path" jdbcType="VARCHAR" property="origin_path" />
-        <result column="abs_path" jdbcType="VARCHAR" property="abs_path" />
-        <result column="file_name" jdbcType="VARCHAR" property="file_name" />
+    <resultMap id="FileResultMap" type="org.jetbrains.hadoop_netdisk.model.File">
+        <result column="file_md5hashcode" jdbcType="CHAR" property="fileMD5HashCode" />
+        <result column="file_path" jdbcType="VARCHAR" property="filePath" />
+        <result column="file_name" jdbcType="VARCHAR" property="fileName" />
+        <result column="file_size" jdbcType="NUMERIC" property="fileSize" />
+        <result column="upload_date" jdbcType="DATE" property="uploadDate" />
+        <result column="is_deleted" jdbcType="BOOLEAN" property="isDeleted" />
+        <result column="delete_date" jdbcType="DATE" property="deleteDate" />
+        <result column="is_shared" jdbcType="BOOLEAN" property="isShared" />
+        <result column="share_date" jdbcType="DATE" property="shareDate" />
+        <result column="share_expire_date" jdbcType="DATE" property="shareExpireDate" />
+        <result column="share_encrypt" jdbcType="BOOLEAN" property="shareEncrypt" />
+        <result column="share_encrypt_code" jdbcType="VARCHAR" property="shareEncryptCode" />
         <result column="owner" jdbcType="VARCHAR" property="owner" />
-        <result column="file_size" jdbcType="NUMERIC" property="file_size" />
-        <result column="upload_date" jdbcType="DATE" property="upload_date" />
-        <result column="is_deleted" jdbcType="BOOLEAN" property="is_deleted" />
-        <result column="delete_date" jdbcType="DATE" property="delete_date" />
-        <result column="is_shared" jdbcType="BOOLEAN" property="is_shared" />
-        <result column="share_date" jdbcType="DATE" property="share_date" />
-        <result column="share_expire_time" jdbcType="DATE" property="share_expire_time" />
-        <result column="share_encrypt" jdbcType="BOOLEAN" property="share_encrypt" />
-        <result column="share_encrypt_code" jdbcType="VARCHAR" property="share_encrypt_code" />
     </resultMap>
 
-    <select id="query" resultType="org.jetbrains.hadoop_netdisk.entity.File">
-        SELECT * FROM hadoop.files WHERE origin_path = #{origin_path};
+    <!-- 根据文件全名查询文件详尽信息 -->
+    <select id="query" resultType="org.jetbrains.hadoop_netdisk.model.File">
+        SELECT *
+        FROM hadoop.files
+        WHERE file_md5hashcode = #{fileMD5HashCode};
     </select>
 
-    <delete id="delete">
-        DELETE FROM hadoop.files WHERE origin_path = #{origin_path};
-    </delete>
+    <!-- 删除一个文件 -->
+    <update id="delete">
+        UPDATE hadoop.files
+        SET is_deleted = TRUE,
+            delete_date = now()
+        WHERE file_md5hashcode = #{fileMD5HashCode};
+    </update>
 
-    <insert id="add">
-        INSERT INTO hadoop.files(origin_path, full_name, file_name, owner, file_size, upload_date,
-                                 delete_date, share_date, share_expire_time)
-        VALUES (#{origin_path}, #{abs_path}, #{file_name}, #{owner}, #{file_size}, #{upload_date},
-                #{delete_date}, #{share_date}, #{share_expire_time});
+    <!-- 删除多个文件 -->
+    <update id="deleteSelected">
+        UPDATE hadoop.files
+        SET is_deleted = TRUE,
+            delete_date = now()
+        WHERE file_md5hashcode IN
+              <foreach collection="selected" open="(" separator="," close=")" item="fileMD5HashCode">
+                        #{fileMD5HashCode}
+              </foreach>
+    </update>
+
+    <!-- 上传一个文件 -->
+    <insert id="upload">
+        INSERT INTO hadoop.files(file_md5hashcode, file_path, file_name, owner, file_size, upload_date)
+        VALUES (#{fileMD5HashCode}, #{filePath}, #{fileName}, #{owner}, #{fileSize}, #{uploadDate});
     </insert>
+
+    <!-- 分享文件 -->
+    <update id="share">
+        UPDATE hadoop.files
+        <set>
+            <if test="1 == 1">is_shared = TRUE,</if>
+            <if test="1 == 1">share_date = now(),</if>
+            <if test="1 == 1">share_expire_date = date_add(now(), INTERVAL #{shareExpireDay} DAY),</if>
+            <if test="shareEncrypt == true">
+                share_encrypt = TRUE,
+                share_encrypt_code = #{shareEncryptCode}
+            </if>
+        </set>
+        WHERE file_md5hashcode = #{fileMD5HashCode};
+    </update>
 </mapper>

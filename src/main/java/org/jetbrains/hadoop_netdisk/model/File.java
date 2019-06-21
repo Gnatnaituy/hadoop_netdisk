@@ -1,4 +1,4 @@
-package org.jetbrains.hadoop_netdisk.entity;
+package org.jetbrains.hadoop_netdisk.model;
 
 import java.sql.Date;
 

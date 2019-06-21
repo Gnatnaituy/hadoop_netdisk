@@ -2,39 +2,52 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-
 <mapper namespace="org.jetbrains.hadoop_netdisk.mapper.UserMapper">
 
-    <resultMap id="UserResultMap" type="org.jetbrains.hadoop_netdisk.entity.User">
+    <resultMap id="UserResultMap" type="org.jetbrains.hadoop_netdisk.model.User">
         <result column="username" jdbcType="VARCHAR" property="username" />
-        <result column="password" jdbcType="VARCHAR" property="password" />
-        <result column="used_capacity" jdbcType="NUMERIC" property="used_capacity" />
-        <result column="total_capacity" jdbcType="NUMERIC" property="total_capacity" />
+        <result column="hashed_password" jdbcType="VARCHAR" property="hashedPassword" />
+        <result column="used_capacity" jdbcType="NUMERIC" property="usedCapacity" />
+        <result column="total_capacity" jdbcType="NUMERIC" property="totalCapacity" />
         <result column="age" jdbcType="NUMERIC" property="age" />
         <result column="gender" jdbcType="NUMERIC" property="gender" />
         <result column="bio" jdbcType="VARCHAR" property="bio" />
         <result column="avatar" jdbcType="VARCHAR" property="avatar" />
     </resultMap>
 
-    <select id="query" resultType="org.jetbrains.hadoop_netdisk.entity.User">
-        SELECT * FROM hadoop.users WHERE username = #{username};
+    <!-- 根据用户名查询用户详尽信息 -->
+    <select id="query" parameterType="String" resultMap="UserResultMap">
+        SELECT *
+        FROM hadoop.users
+        WHERE username = #{username};
     </select>
 
+    <!-- 添加一个用户 用于注册 -->
     <insert id="add">
-        INSERT INTO hadoop.users(username, password, age, gender, bio, avatar)
-        VALUES (#{username}, #{password}, #{age}, #{gender}, #{bio}, #{avatar});
+        INSERT INTO hadoop.users(username, hashed_password)
+        VALUES (#{username}, #{hashedPassword});
     </insert>
 
+    <!-- 删除一个用户 用于注销 -->
     <delete id="delete">
-        DELETE FROM hadoop.users WHERE username = #{username};
+        DELETE FROM hadoop.users
+        WHERE username = #{username};
     </delete>
 
+    <!-- 修改用户资料 -->
     <update id="update">
         UPDATE hadoop.users
-        SET password = #{password}, age = #{age}, gender = #{gender}, bio = #{bio}, avatar = #{avatar}
+        <set>
+            <if test="hashedPassword != null">hashed_password = #{hashedPassword},</if>
+            <if test="age != null">age = #{age},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="bio != null">bio = #{bio},</if>
+            <if test="avatar != null}">avatar = #{avatar}</if>
+        </set>
         WHERE username = #{username};
     </update>
 
+    <!-- 上传或删除文件后改变用户的已用容量 -->
     <update id="updateUsedCapacity">
         UPDATE hadoop.users
         SET used_capacity = #{used_capacity}

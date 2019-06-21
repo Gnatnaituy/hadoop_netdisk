@@ -1,4 +1,4 @@
-package org.jetbrains.hadoop_netdisk.entity;
+package org.jetbrains.hadoop_netdisk.model;
 
 /**
  * @auther hasaker
@@ -7,7 +7,7 @@ package org.jetbrains.hadoop_netdisk.entity;
  */
 public class User {
     private String username;
-    private String password;
+    private String hashedPassword;
     private int usedCapacity;
     private int totalCapacity;
     private int age;
@@ -15,16 +15,32 @@ public class User {
     private String bio;
     private String avatar;
 
-    public User(String username, String password, int usedCapacity, int totalCapacity,
-                int age, int gender, String bio, String avatar) {
+    public User() {}
+
+    public User(String username, String hashedPassword, int usedCapacity,
+                int totalCapacity, int age, int gender, String bio, String avatar) {
         this.username = username;
-        this.password = password;
+        this.hashedPassword = hashedPassword;
         this.usedCapacity = usedCapacity;
         this.totalCapacity = totalCapacity;
         this.age = age;
         this.gender = gender;
         this.bio = bio;
         this.avatar = avatar;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "username='" + username + '\'' +
+                ", hashedPassword='" + hashedPassword + '\'' +
+                ", usedCapacity=" + usedCapacity +
+                ", totalCapacity=" + totalCapacity +
+                ", age=" + age +
+                ", gender=" + gender +
+                ", bio='" + bio + '\'' +
+                ", avatar='" + avatar + '\'' +
+                '}';
     }
 
     public String getUsername() {
@@ -35,12 +51,12 @@ public class User {
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
+    public String getHashedPassword() {
+        return hashedPassword;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setHashedPassword(String hashedPassword) {
+        this.hashedPassword = hashedPassword;
     }
 
     public int getUsedCapacity() {
@@ -89,19 +105,5 @@ public class User {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                ", usedCapacity=" + usedCapacity +
-                ", totalCapacity=" + totalCapacity +
-                ", age=" + age +
-                ", gender=" + gender +
-                ", bio='" + bio + '\'' +
-                ", avatar='" + avatar + '\'' +
-                '}';
     }
 }

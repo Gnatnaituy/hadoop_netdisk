@@ -1,6 +1,6 @@
 package org.jetbrains.hadoop_netdisk.service;
 
-import org.jetbrains.hadoop_netdisk.entity.User;
+import org.jetbrains.hadoop_netdisk.model.User;
 
 /**
  * @auther hasaker
@@ -9,4 +9,8 @@ import org.jetbrains.hadoop_netdisk.entity.User;
  */
 public interface UserService {
     User query(String username);
+    int add(User user);
+    int delete(User user);
+    int update(User user);
+    int updateUsedCapacity(User user);
 }

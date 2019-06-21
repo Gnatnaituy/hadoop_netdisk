@@ -1,7 +1,9 @@
 package org.jetbrains.hadoop_netdisk.mapper;
 
-import org.jetbrains.hadoop_netdisk.entity.File;
+import org.jetbrains.hadoop_netdisk.model.File;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * @auther hasaker
@@ -11,4 +13,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FileMapper {
     File query(String fileName);
+    int delete(String fileMD5HashCode);
+    int deleteSelected(List<String> selected);
+    int upload(File file);
+    int share(String fileMD5HashCode);
 }
