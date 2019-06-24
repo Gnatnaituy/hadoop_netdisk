@@ -7,6 +7,14 @@ spring:
     password: 5523
     url: jdbc:mysql://localhost:3306/hadoop?useUnicode=true&characterEncoding=utf-8&useSSL=true&serverTimezone=UTC
     driver-class-name: com.mysql.cj.jdbc.Driver
+  thymeleaf:
+    cache: false
+  hadoop:
+    config:
+      fs:
+        defaultFS: hdfs://192/168/0/101:8020
+    fsshell:
+      enabled: true
 
 mybatis:
   mapper-locations: classpath:mapping/*.xml

@@ -22,10 +22,17 @@
     </resultMap>
 
     <!-- 根据文件全名查询文件详尽信息 -->
-    <select id="query" resultType="org.jetbrains.hadoop_netdisk.model.File">
+    <select id="getDetail" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
         WHERE file_md5hashcode = #{fileMD5HashCode};
+    </select>
+
+    <!-- 获取用户所有文件 -->
+    <select id="getFileList" resultType="String">
+        SELECT file_name
+        FROM hadoop.files
+        WHERE owner = #{owner};
     </select>
 
     <!-- 删除一个文件 -->
