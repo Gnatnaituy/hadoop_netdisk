@@ -4,11 +4,14 @@ import org.jetbrains.hadoop_netdisk.model.User;
 import org.jetbrains.hadoop_netdisk.service.HdfsService;
 import org.jetbrains.hadoop_netdisk.service.UserService;
 import org.jetbrains.hadoop_netdisk.util.MD5Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.text.MessageFormat;
 
 
 /**
@@ -23,6 +26,8 @@ public class UserController {
     private final UserService userService;
     private final HdfsService hdfsService;
 
+    private Logger logger = LoggerFactory.getLogger(HdfsService.class);
+
     public UserController(UserService userService, HdfsService hdfsService) {
         this.userService = userService;
         this.hdfsService = hdfsService;
@@ -33,7 +38,9 @@ public class UserController {
      */
     @GetMapping("/main/{username}")
     public String main(@PathVariable String username, Model model, HttpServletRequest request) {
-        if (request.getSession().getAttribute(username) == null) {
+        if (request.getSession().getAttribute("currentUser") == null
+                || request.getSession().getAttribute("currentUser") != username) {
+            logger.info(MessageFormat.format("当前用户: {0}", request.getSession().getAttribute("currentUser")));
             return "redirect:/user/login";
         }
 

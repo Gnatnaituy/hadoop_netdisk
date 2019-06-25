@@ -23,7 +23,7 @@
 
     <!-- 获取详尽信息 -->
     <select id="getDetail" resultMap="FileResultMap">
-        SELECT (owner, file_name, file_size, upload_date)
+        SELECT *
         FROM hadoop.files
         WHERE file_md5hashcode = #{fileMD5HashCode};
     </select>

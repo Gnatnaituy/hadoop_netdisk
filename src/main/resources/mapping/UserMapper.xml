@@ -17,7 +17,7 @@
 
     <!-- 查询用户详尽信息 -->
     <select id="query" parameterType="String" resultMap="UserResultMap">
-        SELECT (username, used_capacity, total_capacity, age, gender, bio, avatar)
+        SELECT *
         FROM hadoop.users
         WHERE username = #{username};
     </select>
