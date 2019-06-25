@@ -6,20 +6,20 @@
 </head>
 <body>
 <h1>注册</h1>
-<div id="userExisted" th:fragment="userExisted">
-    <h3>用户名已存在!</h3>
-</div>
+
 <form action="#" th:action="@{/user/register}" th:object="${user}" method="post">
     <p>用户名:
         <label>
         <input type="text" th:field="*{username}" />
         </label>
     </p>
+
     <p>密码:
         <label>
             <input type="text" th:field="*{hashedPassword}" />
         </label>
     </p>
+
     <p>
         <input type="submit" value="注册" />
         <input type="reset" value="重置" />

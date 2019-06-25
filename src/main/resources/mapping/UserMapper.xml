@@ -15,20 +15,20 @@
         <result column="avatar" jdbcType="VARCHAR" property="avatar" />
     </resultMap>
 
-    <!-- 根据用户名查询用户详尽信息 -->
+    <!-- 查询用户详尽信息 -->
     <select id="query" parameterType="String" resultMap="UserResultMap">
-        SELECT *
+        SELECT (username, used_capacity, total_capacity, age, gender, bio, avatar)
         FROM hadoop.users
         WHERE username = #{username};
     </select>
 
-    <!-- 添加一个用户 用于注册 -->
+    <!-- 添加一个用户 -->
     <insert id="add">
         INSERT INTO hadoop.users(username, hashed_password)
         VALUES (#{username}, #{hashedPassword});
     </insert>
 
-    <!-- 删除一个用户 用于注销 -->
+    <!-- 删除一个用户 -->
     <delete id="delete">
         DELETE FROM hadoop.users
         WHERE username = #{username};

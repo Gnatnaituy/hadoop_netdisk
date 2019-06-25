@@ -3,11 +3,12 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 
-<mapper namespace="org.jetbrains.hadoop_netdisk.mapper.FileMapper">
+<mapper namespace="org.jetbrains.hadoop_netdisk.mapper.MyFileMapper">
 
-    <resultMap id="FileResultMap" type="org.jetbrains.hadoop_netdisk.model.File">
+    <resultMap id="FileResultMap" type="org.jetbrains.hadoop_netdisk.model.MyFile">
+        <result column="owner" jdbcType="VARCHAR" property="owner" />
         <result column="file_md5hashcode" jdbcType="CHAR" property="fileMD5HashCode" />
-        <result column="file_path" jdbcType="VARCHAR" property="filePath" />
+        <result column="full_name" jdbcType="VARCHAR" property="fullName" />
         <result column="file_name" jdbcType="VARCHAR" property="fileName" />
         <result column="file_size" jdbcType="NUMERIC" property="fileSize" />
         <result column="upload_date" jdbcType="DATE" property="uploadDate" />
@@ -18,24 +19,30 @@
         <result column="share_expire_date" jdbcType="DATE" property="shareExpireDate" />
         <result column="share_encrypt" jdbcType="BOOLEAN" property="shareEncrypt" />
         <result column="share_encrypt_code" jdbcType="VARCHAR" property="shareEncryptCode" />
-        <result column="owner" jdbcType="VARCHAR" property="owner" />
     </resultMap>
 
-    <!-- 根据文件全名查询文件详尽信息 -->
+    <!-- 获取详尽信息 -->
     <select id="getDetail" resultMap="FileResultMap">
-        SELECT *
+        SELECT (owner, file_name, file_size, upload_date)
         FROM hadoop.files
         WHERE file_md5hashcode = #{fileMD5HashCode};
     </select>
 
-    <!-- 获取用户所有文件 -->
-    <select id="getFileList" resultType="String">
-        SELECT file_name
-        FROM hadoop.files
-        WHERE owner = #{owner};
-    </select>
+    <!-- 插入 -->
+    <insert id="insert">
+        INSERT INTO hadoop.files(owner, file_md5hashcode, full_name, file_name, file_size)
+        VALUES (#{owner}, #{fileMD5HashCode}, #{fullName}, #{fileName}, #{fileSize});
+    </insert>
 
-    <!-- 删除一个文件 -->
+    <!-- 重命名 -->
+    <update id="rename">
+        UPDATE hadoop.files
+        SET full_name = #{full_name},
+            file_size = #{file_name}
+        WHERE file_md5hashcode = #{fileMD5HashCode};
+    </update>
+
+    <!-- 删除 -->
     <update id="delete">
         UPDATE hadoop.files
         SET is_deleted = TRUE,
@@ -43,24 +50,7 @@
         WHERE file_md5hashcode = #{fileMD5HashCode};
     </update>
 
-    <!-- 删除多个文件 -->
-    <update id="deleteSelected">
-        UPDATE hadoop.files
-        SET is_deleted = TRUE,
-            delete_date = now()
-        WHERE file_md5hashcode IN
-              <foreach collection="selected" open="(" separator="," close=")" item="fileMD5HashCode">
-                        #{fileMD5HashCode}
-              </foreach>
-    </update>
-
-    <!-- 上传一个文件 -->
-    <insert id="upload">
-        INSERT INTO hadoop.files(file_md5hashcode, file_path, file_name, owner, file_size, upload_date)
-        VALUES (#{fileMD5HashCode}, #{filePath}, #{fileName}, #{owner}, #{fileSize}, #{uploadDate});
-    </insert>
-
-    <!-- 分享文件 -->
+    <!-- 分享 -->
     <update id="share">
         UPDATE hadoop.files
         <set>
@@ -74,4 +64,11 @@
         </set>
         WHERE file_md5hashcode = #{fileMD5HashCode};
     </update>
+
+    <!-- 获取分享文件列表 -->
+    <select id="getSharedFiles" resultType="String">
+        SELECT full_name
+        FROM hadoop.files
+        WHERE is_shared = TRUE;
+    </select>
 </mapper>

@@ -7,7 +7,8 @@ import java.sql.Date;
  * @create_date 2019-06-19 18:27
  * @description
  */
-public class File {
+public class MyFile {
+    private String fileMD5HashCode;
     private String fullName;
     private String fileName;
     private String owner;
@@ -21,11 +22,23 @@ public class File {
     private boolean shareEncrypt;
     private String shareEncryptCode;
 
-    public String getAbsPath() {
+    public MyFile(String fileMD5HashCode, String fullName, String fileName, String owner, int fileSize) {
+        this.fileMD5HashCode = fileMD5HashCode;
+        this.fullName = fullName;
+        this.fileName = fileName;
+        this.owner = owner;
+        this.fileSize = fileSize;
+    }
+
+    public String getFileMD5HashCode() {
+        return fileMD5HashCode;
+    }
+
+    public String getFullName() {
         return fullName;
     }
 
-    public void setAbsPath(String fullName) {
+    public void setFullName(String fullName) {
         this.fullName = fullName;
     }
 
@@ -115,40 +128,5 @@ public class File {
 
     public void setShareEncryptCode(String shareEncryptCode) {
         this.shareEncryptCode = shareEncryptCode;
-    }
-
-    public File(String fullName, String fileName, String owner, int fileSize, Date uploadDate,
-                boolean isDeleted, Date deleteDate, boolean isShared, Date shareDate, int shareExpireTime,
-                boolean shareEncrypt, String shareEncryptCode) {
-        this.fullName = fullName;
-        this.fileName = fileName;
-        this.owner = owner;
-        this.fileSize = fileSize;
-        this.uploadDate = uploadDate;
-        this.isDeleted = isDeleted;
-        this.deleteDate = deleteDate;
-        this.isShared = isShared;
-        this.shareDate = shareDate;
-        this.shareExpireTime = shareExpireTime;
-        this.shareEncrypt = shareEncrypt;
-        this.shareEncryptCode = shareEncryptCode;
-    }
-
-    @Override
-    public String toString() {
-        return "File{" +
-                "fullName='" + fullName + '\'' +
-                ", fileName='" + fileName + '\'' +
-                ", owner='" + owner + '\'' +
-                ", fileSize=" + fileSize +
-                ", uploadDate=" + uploadDate +
-                ", isDeleted=" + isDeleted +
-                ", deleteDate=" + deleteDate +
-                ", isShared=" + isShared +
-                ", shareDate=" + shareDate +
-                ", shareExpireTime=" + shareExpireTime +
-                ", shareEncrypt=" + shareEncrypt +
-                ", shareEncryptCode='" + shareEncryptCode + '\'' +
-                '}';
     }
 }

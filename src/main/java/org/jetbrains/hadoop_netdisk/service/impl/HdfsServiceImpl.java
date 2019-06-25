@@ -24,6 +24,7 @@ import java.util.Map;
 public class HdfsServiceImpl implements HdfsService {
     private Configuration conf;
     private String defaultHdfsUri;
+
     private Logger logger = LoggerFactory.getLogger(HdfsService.class);
 
     public HdfsServiceImpl(Configuration conf, String defaultHdfsUri) {
@@ -43,7 +44,6 @@ public class HdfsServiceImpl implements HdfsService {
             return true;
         } else {
             FileSystem fileSystem = null;
-
 
             try {
                 fileSystem = getFileSystem();
@@ -262,7 +262,7 @@ public class HdfsServiceImpl implements HdfsService {
     /**
      * 打开HDFS文件并返回Java对象
      */
-    public <T extends Object> T openWithObject(String path, Class<T> clazz) {
+    public <T> T openWithObject(String path, Class<T> clazz) {
         String jsonStr = this.openWithString(path);
 
         return JSON.parseObject(jsonStr, clazz);

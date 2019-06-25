@@ -6,6 +6,8 @@
 </head>
 <body>
 <h1>Form</h1>
+
+
 <form action="#" th:action="@{/user/login}" th:object="${user}" method="post">
     <p>用户名: <input type="text" th:field="*{username}" /></p>
     <p>密码: <input type="text" th:field="*{hashedPassword}" /></p>

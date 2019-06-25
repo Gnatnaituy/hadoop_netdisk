@@ -17,30 +17,13 @@ public class User {
 
     public User() {}
 
-    public User(String username, String hashedPassword, int usedCapacity,
-                int totalCapacity, int age, int gender, String bio, String avatar) {
+    public User(String username, String hashedPassword, int age, int gender, String bio, String avatar) {
         this.username = username;
         this.hashedPassword = hashedPassword;
-        this.usedCapacity = usedCapacity;
-        this.totalCapacity = totalCapacity;
         this.age = age;
         this.gender = gender;
         this.bio = bio;
         this.avatar = avatar;
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "username='" + username + '\'' +
-                ", hashedPassword='" + hashedPassword + '\'' +
-                ", usedCapacity=" + usedCapacity +
-                ", totalCapacity=" + totalCapacity +
-                ", age=" + age +
-                ", gender=" + gender +
-                ", bio='" + bio + '\'' +
-                ", avatar='" + avatar + '\'' +
-                '}';
     }
 
     public String getUsername() {

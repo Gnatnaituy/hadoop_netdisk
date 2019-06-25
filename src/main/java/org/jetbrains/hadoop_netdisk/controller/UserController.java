@@ -1,6 +1,7 @@
 package org.jetbrains.hadoop_netdisk.controller;
 
 import org.jetbrains.hadoop_netdisk.model.User;
+import org.jetbrains.hadoop_netdisk.service.HdfsService;
 import org.jetbrains.hadoop_netdisk.service.UserService;
 import org.jetbrains.hadoop_netdisk.util.MD5Util;
 import org.springframework.stereotype.Controller;
@@ -20,9 +21,11 @@ import javax.servlet.http.HttpServletRequest;
 public class UserController {
 
     private final UserService userService;
+    private final HdfsService hdfsService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, HdfsService hdfsService) {
         this.userService = userService;
+        this.hdfsService = hdfsService;
     }
 
     /**
@@ -97,7 +100,7 @@ public class UserController {
         }
 
         model.addAttribute("user", target);
-        request.getSession().setAttribute(user.getUsername(), true);
+        request.getSession().setAttribute("currentUser", user.getUsername());
 
         return "redirect:/user/main/" + user.getUsername();
     }
@@ -119,7 +122,6 @@ public class UserController {
 
     /**
      * 注册
-     *      如果用户名已被注册 --> 提示用户
      */
     @PostMapping("/register")
     public String doRegister(@ModelAttribute User user, HttpServletRequest request) {
@@ -130,7 +132,12 @@ public class UserController {
         }
 
         user.setHashedPassword(MD5Util.getStringMD5(user.getHashedPassword()));
+
+        // 将用户信息存入MySQL中
         userService.add(user);
+
+        // 在hadoop中创建用户家目录
+        hdfsService.mkdir(user.getUsername());
 
         return "redirect:/user/login";
     }
