@@ -13,8 +13,12 @@ import java.util.List;
 @Repository
 public interface FileMapper {
     File query(String fileName);
+
     int delete(String fileMD5HashCode);
+
     int deleteSelected(List<String> selected);
+
     int upload(File file);
+
     int share(String fileMD5HashCode);
 }

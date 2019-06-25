@@ -11,8 +11,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserMapper {
     User query(String username);
+
     int add(User user);
+
     int delete(User user);
+
     int update(User user);
+
     int updateUsedCapacity(User user);
 }

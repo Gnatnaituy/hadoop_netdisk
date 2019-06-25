@@ -9,8 +9,12 @@ import org.jetbrains.hadoop_netdisk.model.User;
  */
 public interface UserService {
     User query(String username);
+
     int add(User user);
+
     int delete(User user);
+
     int update(User user);
+
     int updateUsedCapacity(User user);
 }

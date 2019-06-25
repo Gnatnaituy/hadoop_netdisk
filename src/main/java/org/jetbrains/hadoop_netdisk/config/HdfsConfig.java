@@ -14,13 +14,14 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class HdfsConfig {
-    @Value("${hdfs.defaultFS}")
+    @Value("${spring.hadoop.config.fs.defaultFS}")
     private String defaultHdfsUri;
 
     @Bean
     public HdfsService getHdfsService() {
         org.apache.hadoop.conf.Configuration conf = HBaseConfiguration.create();
         conf.set("fs.defaultFS", defaultHdfsUri);
+        conf.set("dfs.client.use.datanode.hostname","true");
 
         return new HdfsServiceImpl(conf, defaultHdfsUri);
     }

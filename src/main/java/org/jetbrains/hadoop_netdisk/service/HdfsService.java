@@ -18,9 +18,13 @@ public interface HdfsService {
 
     void upload(String srcFile, String desFile);
 
-    List<Map<String, Object>> listFiles(String path, PathFilter pathFilter);
-
     void download(String srcFile, String desFile);
+
+    boolean rename(String srcFile, String desFile);
+
+    boolean delete(String path);
+
+    List<Map<String, Object>> listFiles(String path, PathFilter pathFilter);
 
     FSDataInputStream open(String path);
 
@@ -29,10 +33,6 @@ public interface HdfsService {
     String openWithString(String path);
 
     <T> T openWithObject(String path, Class<T> clazz);
-
-    boolean rename(String srcFile, String desFile);
-
-    boolean delete(String path);
 
     BlockLocation[] getFileBlockLocations(String path);
 }
