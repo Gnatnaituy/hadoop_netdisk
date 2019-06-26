@@ -51,17 +51,17 @@ public class HdfsTest {
 
     @Test
     public void testDownload() {
-        hdfsService.download("/testDir/magisk.zip", "/Users/hasaker/Documents/K20Pro/m.zip");
+        hdfsService.download("/testDir/magisk.zip", "/Users/hasaker/Desktop/magisk.zip");
     }
 
     @Test
     public void testRename() {
-        hdfsService.rename("/testDir/magisk.zip", "/testDir/m.zip");
+        hdfsService.rename("/Eminem.txt", "/EminemShow.txt");
     }
 
     @Test
     public void testGetFileBlockLocations() throws IOException {
-        BlockLocation[] locations = hdfsService.getFileBlockLocations("/testDir/m.zip");
+        BlockLocation[] locations = hdfsService.getFileBlockLocations("/Eminem.txt");
 
         if(locations != null && locations.length > 0){
             for(BlockLocation location : locations){

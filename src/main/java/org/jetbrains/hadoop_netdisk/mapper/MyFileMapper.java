@@ -14,6 +14,10 @@ import java.util.List;
 public interface MyFileMapper {
     MyFile getDetail(String fileName);
 
+    List<MyFile> getSharedFiles();
+
+    List<MyFile> getSharedFilesByUsername(String username);
+
     int insert(MyFile myFile);
 
     int rename(String fileMD5HashCode);
@@ -21,6 +25,4 @@ public interface MyFileMapper {
     int delete(String fileMD5HashCode);
 
     int share(String fileMD5HashCode);
-
-    List<String> getSharedFiles();
 }

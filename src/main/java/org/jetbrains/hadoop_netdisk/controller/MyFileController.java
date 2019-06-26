@@ -1,15 +1,18 @@
 package org.jetbrains.hadoop_netdisk.controller;
 
 import org.jetbrains.hadoop_netdisk.model.MyFile;
+import org.jetbrains.hadoop_netdisk.model.User;
 import org.jetbrains.hadoop_netdisk.service.MyFileService;
 import org.jetbrains.hadoop_netdisk.service.HdfsService;
 import org.jetbrains.hadoop_netdisk.service.UserService;
+import org.jetbrains.hadoop_netdisk.util.MD5Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
 import java.text.MessageFormat;
 
 /**
@@ -23,7 +26,7 @@ public class MyFileController {
     private final MyFileService myFileService;
     private final HdfsService hdfsService;
     private final UserService userService;
-    private Logger logger = LoggerFactory.getLogger(HdfsService.class);
+    private Logger logger = LoggerFactory.getLogger(MyFileController.class);
 
     public MyFileController(MyFileService myFileService, HdfsService hdfsService, UserService userService) {
         this.myFileService = myFileService;
@@ -50,17 +53,17 @@ public class MyFileController {
         hdfsService.upload(srcFile, desPath);
 
         // 插入文件记录
-//        String fileMD5HashCode = MD5Util.getFileMD5(file.transferTo(new File()));
-//        String fileName = srcFile.split("/")[srcFile.split("/").length - 1];
-//        String fullName = desPath + "/" + fileName;
-//        int fileSize = (int) file.getSize();
-//        myFileService.insert(new MyFile(fileMD5HashCode, fullName, fileName, currentUser, fileSize));
+        File desFile = new File(desPath + file.getName());
+        String fileMD5HashCode = MD5Util.getFileMD5(desFile);
+        String fullName = desPath + "/" + desFile.getName();
+        String fileName = desFile.getName();
+        int fileSize = (int) desFile.getTotalSpace();
+        myFileService.insert(new MyFile(fileMD5HashCode, fullName, fileName, currentUser, fileSize));
 
-//        // 更新用户容量使用信息
-//        User user = userService.query(currentUser);
-//        user.setUsedCapacity(user.getUsedCapacity() + fileSize);
-//        user.setTotalCapacity(user.getTotalCapacity() - fileSize);
-//        userService.update(user);
+        // 更新用户容量使用信息
+        User user = userService.query(currentUser);
+        user.setUsedCapacity(user.getUsedCapacity() + fileSize);
+        userService.updateUsedCapacity(user);
 
         return "redirect:/user/main";
     }

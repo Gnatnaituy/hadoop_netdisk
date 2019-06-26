@@ -5,16 +5,21 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <body>
-<h1>Form</h1>
+<h1>用户登录</h1>
 
-
+<div th:if="${msg}">
+    <h1 th:text="${msg}"></h1>
+</div>
 <form action="#" th:action="@{/user/login}" th:object="${user}" method="post">
-    <p>用户名: <input type="text" th:field="*{username}" /></p>
+    <p>用户名: <input type="text" th:field="*{username}" /> </p>
     <p>密码: <input type="text" th:field="*{hashedPassword}" /></p>
     <p>
         <input type="submit" value="登录" />
-        <input type="button" th:action="@{/user/register}" method="get" value="注册" />
     </p>
+</form>
+
+<form th:action="@{/user/register}" th:method="get">
+    <input type="submit" th:action="@{/user/register}" value="注册" />
 </form>
 </body>
 </html>

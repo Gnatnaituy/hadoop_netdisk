@@ -3,7 +3,10 @@ package org.jetbrains.hadoop_netdisk.service.impl;
 import org.jetbrains.hadoop_netdisk.model.User;
 import org.jetbrains.hadoop_netdisk.mapper.UserMapper;
 import org.jetbrains.hadoop_netdisk.service.UserService;
+import org.jetbrains.hadoop_netdisk.util.MD5Util;
 import org.springframework.stereotype.Service;
+
+import javax.servlet.http.HttpSession;
 
 /**
  * @auther hasaker
@@ -37,5 +40,21 @@ public class UserServiceImpl implements UserService {
 
     public int updateUsedCapacity(User user) {
         return userMapper.updateUsedCapacity(user);
+    }
+
+    public User checkLogin(String username, String password) {
+        User user = userMapper.query(username);
+
+        if (user != null && user.getHashedPassword().equals(MD5Util.getStringMD5(password))) {
+            return user;
+        } else {
+            return null;
+        }
+    }
+
+    public User getCurrentUser(HttpSession session) {
+        Object currentUser = session.getAttribute("currentUser");
+
+        return currentUser == null ? null : userMapper.query(currentUser.toString());
     }
 }

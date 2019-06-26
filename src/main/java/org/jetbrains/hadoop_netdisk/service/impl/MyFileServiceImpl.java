@@ -24,6 +24,14 @@ public class MyFileServiceImpl implements MyFileService {
         return myFileMapper.getDetail(fileName);
     }
 
+    public List<MyFile> getSharedFiles() {
+        return myFileMapper.getSharedFiles();
+    }
+
+    public List<MyFile> getSharedFilesByUsername(String username) {
+        return myFileMapper.getSharedFilesByUsername(username);
+    }
+
     public int rename(String fileMD5HashCode) {
         return myFileMapper.rename(fileMD5HashCode);
     }
@@ -38,9 +46,5 @@ public class MyFileServiceImpl implements MyFileService {
 
     public int share(String fileMD5HasCode) {
         return myFileMapper.share(fileMD5HasCode);
-    }
-
-    public List<String> getSharedFiles() {
-        return myFileMapper.getSharedFiles();
     }
 }

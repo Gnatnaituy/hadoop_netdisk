@@ -28,6 +28,20 @@
         WHERE file_md5hashcode = #{fileMD5HashCode};
     </select>
 
+    <!-- 获取分享文件列表 -->
+    <select id="getSharedFiles" resultMap="FileResultMap">
+        SELECT *
+        FROM hadoop.files
+        WHERE is_shared = TRUE;
+    </select>
+
+    <!-- 获取某个用户分享的文件列表 -->
+    <select id="getSharedFilesByUsername" resultMap="FileResultMap">
+        SELECT *
+        FROM hadoop.files
+        WHERE is_shared = TRUE AND owner = #{usernmae};
+    </select>
+
     <!-- 插入 -->
     <insert id="insert">
         INSERT INTO hadoop.files(owner, file_md5hashcode, full_name, file_name, file_size)
@@ -64,11 +78,4 @@
         </set>
         WHERE file_md5hashcode = #{fileMD5HashCode};
     </update>
-
-    <!-- 获取分享文件列表 -->
-    <select id="getSharedFiles" resultType="String">
-        SELECT full_name
-        FROM hadoop.files
-        WHERE is_shared = TRUE;
-    </select>
 </mapper>

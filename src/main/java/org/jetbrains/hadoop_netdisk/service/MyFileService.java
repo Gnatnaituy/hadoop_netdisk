@@ -13,6 +13,10 @@ import java.util.List;
 public interface MyFileService {
     MyFile getDetail(String fileName);
 
+    List<MyFile> getSharedFiles();
+
+    List<MyFile> getSharedFilesByUsername(String username);
+
     int insert(MyFile myFile);
 
     int delete(String fileMD5HashCode);
@@ -20,6 +24,4 @@ public interface MyFileService {
     int rename(String fileMD5HashCode);
 
     int share(String fileMD5HashCode);
-
-    List<String> getSharedFiles();
 }

@@ -6,12 +6,34 @@
 </head>
 <body>
 <h1 th:text="${user.getUsername()}">的网盘</h1>
-<p th:text="${user.getUsername()}"></p>
-<p th:text="${user.getUsedCapacity()}"></p>
-<p th:text="${user.getTotalCapacity()}"></p>
-<p th:text="${user.getAge()}"></p>
-<p th:text="${user.getGender()}"></p>
-<p th:text="${user.getBio()}"></p>
-<p th:text="${user.getAvatar()}"></p>
+
+<table>
+    <tr>
+        <th>fullName</th>
+        <th>fileName</th>
+        <th>fileSize</th>
+        <th>isDir</th>
+    </tr>
+    <tr th:each="file : ${fileList}">
+        <td th:text="${file.get('fullName')}"></td>
+        <td th:text="${file.get('fileName')}"></td>
+        <td th:text="${file.get('fileSize')}"></td>
+        <td th:text="${file.get('isDir')}"></td>
+    </tr>
+</table>
+
+
+<form id="logout" th:action="@{/user/logout}" th:method="post">
+    <input type="submit" value="退出登录">
+</form>
+
+<form id="unregister" th:action="@{/user/unregister}" th:method="post">
+    <input type="submit" value="注销用户">
+</form>
+
+<form id="about" th:action="@{/user/about}" th:method="post">
+    <input type="submit" value="关于我">
+</form>
+
 </body>
 </html>

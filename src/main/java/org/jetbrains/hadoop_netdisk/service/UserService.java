@@ -2,6 +2,8 @@ package org.jetbrains.hadoop_netdisk.service;
 
 import org.jetbrains.hadoop_netdisk.model.User;
 
+import javax.servlet.http.HttpSession;
+
 /**
  * @auther hasaker
  * @create_date 2019-06-19 17:03
@@ -17,4 +19,8 @@ public interface UserService {
     int update(User user);
 
     int updateUsedCapacity(User user);
+
+    User checkLogin(String username, String password);
+
+    User getCurrentUser(HttpSession session);
 }

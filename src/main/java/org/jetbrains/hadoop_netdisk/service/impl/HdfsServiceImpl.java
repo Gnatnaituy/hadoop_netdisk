@@ -88,12 +88,12 @@ public class HdfsServiceImpl implements HdfsService {
      */
     public void download(String srcFile, String desFile) {
         Path hdfsSrcPath = new Path(generateHdfsPath(srcFile));
-        Path localDesPath = new Path(desFile);
+        Path localDesPath  = new Path(desFile);
         FileSystem fileSystem = null;
 
         try {
             fileSystem = getFileSystem();
-            fileSystem.copyFromLocalFile(hdfsSrcPath, localDesPath);
+            fileSystem.copyToLocalFile(hdfsSrcPath, localDesPath);
         } catch (IOException e) {
             logger.error(MessageFormat.format("从HDFS下载文件至本地失败，srcFile:{0}, desFile:{1}", srcFile, desFile), e);
         } finally {
@@ -165,7 +165,9 @@ public class HdfsServiceImpl implements HdfsService {
                 if (statuses != null) {
                     for (FileStatus status : statuses) {
                         Map<String, Object> fileMap = new HashMap<>(2);
-                        fileMap.put("path", status.getPath().toString());
+                        fileMap.put("fullName", status.getPath().toString());
+                        fileMap.put("fileName", status.getPath().getName());
+                        fileMap.put("fileSize", status.getLen());
                         fileMap.put("isDir", status.isDirectory());
 
                         res.add(fileMap);
