@@ -15,7 +15,19 @@ public interface MyFileService {
 
     List<MyFile> getSharedFiles();
 
+    List<MyFile> getSharedFilesOrderByDownloadCount();
+
+    List<MyFile> getSharedFilesOrderByShareDate();
+
+    int getSharedFilesCount(String username);
+
+    int getTotalDownloadCount(String username);
+
     List<MyFile> getSharedFilesByUsername(String username);
+
+    List<MyFile> searchFiles(String query);
+
+    List<MyFile> searchSharedFiles(String query);
 
     int insert(MyFile myFile);
 

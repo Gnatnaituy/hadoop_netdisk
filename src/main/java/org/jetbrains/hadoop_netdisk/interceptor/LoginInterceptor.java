@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 public class LoginInterceptor implements HandlerInterceptor {
 
     /**
-     * 连接没有登录的操作
+     * 拦截没有登录的操作
      */
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
         throws Exception {
@@ -21,6 +21,7 @@ public class LoginInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        request.getSession().setAttribute("msg", "请先登录!");
         response.sendRedirect("/user/login");
 
         return true;

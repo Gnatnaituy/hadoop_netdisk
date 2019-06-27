@@ -19,33 +19,74 @@
         <result column="share_expire_date" jdbcType="DATE" property="shareExpireDate" />
         <result column="share_encrypt" jdbcType="BOOLEAN" property="shareEncrypt" />
         <result column="share_encrypt_code" jdbcType="VARCHAR" property="shareEncryptCode" />
+        <result column="download_count" jdbcType="NUMERIC" property="downloadCount" />
     </resultMap>
 
     <!-- 获取详尽信息 -->
     <select id="getDetail" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
-        WHERE file_md5hashcode = #{fileMD5HashCode};
+        WHERE file_md5hashcode = #{fileMD5HashCode}
     </select>
 
     <!-- 获取分享文件列表 -->
     <select id="getSharedFiles" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
-        WHERE is_shared = TRUE;
+        WHERE is_shared = TRUE
+    </select>
+
+    <!-- 将分享文件列表按下载次数排序 -->
+    <select id="getSharedFilesOrderByDownloadCount" resultMap="FileResultMap">
+        <include refid="getSharedFiles" />
+        ORDER BY #{download_count} DESC
+    </select>
+
+    <!-- 将分享文件列表按分享时间排序 -->
+    <select id="getSharedFilesOrderByShareDate" resultMap="FileResultMap">
+        <include refid="getSharedFiles" />
+        ORDER BY #{shared_date}
+    </select>
+
+    <!-- 搜索用户文件 -->
+    <select id="searchFiles" resultMap="FileResultMap">
+        SELECT *
+        FROM hadoop.files
+        WHERE owner = #{username} AND file_name LIKE concat('%', #{query}, '%')
+    </select>
+
+    <!-- 搜索已分享文件 -->
+    <select id="searchSharedFiles" resultMap="FileResultMap">
+        SELECT *
+        FROM hadoop.files
+        WHERE is_shared = TRUE AND file_name LIKE concat('%', #{query}, '%')
     </select>
 
     <!-- 获取某个用户分享的文件列表 -->
     <select id="getSharedFilesByUsername" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
-        WHERE is_shared = TRUE AND owner = #{usernmae};
+        WHERE is_shared = TRUE AND owner = #{usernmae}
+    </select>
+
+    <!-- 查询某用户分享的文件数 -->
+    <select id="getSharedFilesCount" resultType="NUMERIC">
+        SELECT count(owner)
+        FROM hadoop.files
+        WHERE is_shared = TRUE AND owner = #{username}
+    </select>
+
+    <!-- 查询某用户分享文件的下载次数总合 -->
+    <select id="getTotalDownloadCount" resultType="NUMERIC">
+        SELECT sum(download_count)
+        FROM hadoop.files
+        WHERE is_shared = TRUE AND owner = #{username}
     </select>
 
     <!-- 插入 -->
     <insert id="insert">
         INSERT INTO hadoop.files(owner, file_md5hashcode, full_name, file_name, file_size)
-        VALUES (#{owner}, #{fileMD5HashCode}, #{fullName}, #{fileName}, #{fileSize});
+        VALUES (#{owner}, #{fileMD5HashCode}, #{fullName}, #{fileName}, #{fileSize})
     </insert>
 
     <!-- 重命名 -->
@@ -53,7 +94,7 @@
         UPDATE hadoop.files
         SET full_name = #{full_name},
             file_size = #{file_name}
-        WHERE file_md5hashcode = #{fileMD5HashCode};
+        WHERE file_md5hashcode = #{fileMD5HashCode}
     </update>
 
     <!-- 删除 -->
@@ -61,7 +102,7 @@
         UPDATE hadoop.files
         SET is_deleted = TRUE,
             delete_date = now()
-        WHERE file_md5hashcode = #{fileMD5HashCode};
+        WHERE file_md5hashcode = #{fileMD5HashCode}
     </update>
 
     <!-- 分享 -->
@@ -76,6 +117,6 @@
                 share_encrypt_code = #{shareEncryptCode}
             </if>
         </set>
-        WHERE file_md5hashcode = #{fileMD5HashCode};
+        WHERE file_md5hashcode = #{fileMD5HashCode}
     </update>
 </mapper>

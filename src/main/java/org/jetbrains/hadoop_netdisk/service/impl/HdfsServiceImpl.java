@@ -9,6 +9,7 @@ import org.apache.hadoop.fs.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -63,21 +64,22 @@ public class HdfsServiceImpl implements HdfsService {
 
     /**
      * 上传
+     * @return 上传后文件在hadoop上的路径
      */
-    public void upload(String srcFile, String desPath) {
-        this.upload(false, true, srcFile, desPath);
-    }
-
-    private void upload(boolean deleteSrc, boolean overwrite, String srcFile, String desPath) {
-        Path localSrcPath = new Path(srcFile);
+    public String upload(File srcFile, String desPath) {
+        Path localSrcPath = new Path(srcFile.getPath());
         Path hdfsDesPath = new Path(generateHdfsPath(desPath));
         FileSystem fileSystem = null;
 
         try {
             fileSystem = getFileSystem();
-            fileSystem.copyFromLocalFile(deleteSrc, overwrite, localSrcPath, hdfsDesPath);
+            fileSystem.copyFromLocalFile(localSrcPath, hdfsDesPath);
+
+            return hdfsDesPath.toString();
         } catch (IOException e) {
             logger.error(MessageFormat.format("上传文件到HDFS失败, srcFile:{0}, desPath:{1}", srcFile, desPath), e);
+
+            return "上传失败!";
         } finally {
             close(fileSystem);
         }

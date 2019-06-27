@@ -4,6 +4,7 @@ import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.PathFilter;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +17,7 @@ import java.util.Map;
 public interface HdfsService {
     boolean mkdir(String path);
 
-    void upload(String srcFile, String desFile);
+    String upload(File srcFile, String desFile);
 
     void download(String srcFile, String desFile);
 

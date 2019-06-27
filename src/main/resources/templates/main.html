@@ -23,6 +23,11 @@
 </table>
 
 
+<form id="upload" th:action="@{/file/upload}" th:method="post" enctype="multipart/form-data">
+    <input type="file" name="file">
+    <button type="submit">上传</button>
+</form>
+
 <form id="logout" th:action="@{/user/logout}" th:method="post">
     <input type="submit" value="退出登录">
 </form>

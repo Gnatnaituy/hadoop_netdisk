@@ -28,8 +28,32 @@ public class MyFileServiceImpl implements MyFileService {
         return myFileMapper.getSharedFiles();
     }
 
+    public List<MyFile> getSharedFilesOrderByDownloadCount() {
+        return myFileMapper.getSharedFilesOrderByDownloadCount();
+    }
+
+    public List<MyFile> getSharedFilesOrderByShareDate() {
+        return myFileMapper.getSharedFilesOrderByShareDate();
+    }
+
     public List<MyFile> getSharedFilesByUsername(String username) {
         return myFileMapper.getSharedFilesByUsername(username);
+    }
+
+    public int getSharedFilesCount(String username) {
+        return myFileMapper.getSharedFilesCount(username);
+    }
+
+    public int getTotalDownloadCount(String username) {
+        return myFileMapper.getTotalDownloadCount(username);
+    }
+
+    public List<MyFile> searchFiles(String query) {
+        return myFileMapper.searchFiles(query);
+    }
+
+    public List<MyFile> searchSharedFiles(String query) {
+        return myFileMapper.searchSharedFiles(query);
     }
 
     public int rename(String fileMD5HashCode) {

@@ -8,11 +8,11 @@ import java.sql.Date;
  * @description
  */
 public class MyFile {
+    private String owner;
     private String fileMD5HashCode;
     private String fullName;
     private String fileName;
-    private String owner;
-    private int fileSize;
+    private double fileSize;
     private Date uploadDate;
     private boolean isDeleted;
     private Date deleteDate;
@@ -21,12 +21,13 @@ public class MyFile {
     private int shareExpireTime;
     private boolean shareEncrypt;
     private String shareEncryptCode;
+    private int downloadCount;
 
-    public MyFile(String fileMD5HashCode, String fullName, String fileName, String owner, int fileSize) {
+    public MyFile(String owner, String fileMD5HashCode, String fullName, String fileName, double fileSize) {
+        this.owner = owner;
         this.fileMD5HashCode = fileMD5HashCode;
         this.fullName = fullName;
         this.fileName = fileName;
-        this.owner = owner;
         this.fileSize = fileSize;
     }
 
@@ -58,11 +59,11 @@ public class MyFile {
         this.owner = owner;
     }
 
-    public int getFileSize() {
+    public double getFileSize() {
         return fileSize;
     }
 
-    public void setFileSize(int fileSize) {
+    public void setFileSize(double fileSize) {
         this.fileSize = fileSize;
     }
 
@@ -128,5 +129,13 @@ public class MyFile {
 
     public void setShareEncryptCode(String shareEncryptCode) {
         this.shareEncryptCode = shareEncryptCode;
+    }
+
+    public int getDownloadCount() {
+        return this.downloadCount;
+    }
+
+    public void setDownloadCount(int downloadCount) {
+        this.downloadCount = downloadCount;
     }
 }

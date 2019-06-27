@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,7 @@ public class HdfsTest {
 
     @Test
     public void testUpload() {
-        hdfsService.upload("/Users/hasaker/Documents/K20Pro/magisk.zip", "/testDir/magisk.zip");
+        hdfsService.upload(new File("/Users/hasaker/Documents/K20Pro/magisk.zip"), "/testDir/magisk.zip");
     }
 
     @Test

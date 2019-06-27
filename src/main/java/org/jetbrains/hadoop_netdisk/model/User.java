@@ -8,8 +8,8 @@ package org.jetbrains.hadoop_netdisk.model;
 public class User {
     private String username;
     private String hashedPassword;
-    private int usedCapacity;
-    private int totalCapacity;
+    private double usedCapacity;
+    private double totalCapacity;
     private int age;
     private int gender;
     private String bio;
@@ -42,19 +42,19 @@ public class User {
         this.hashedPassword = hashedPassword;
     }
 
-    public int getUsedCapacity() {
+    public double getUsedCapacity() {
         return usedCapacity;
     }
 
-    public void setUsedCapacity(int usedCapacity) {
+    public void setUsedCapacity(double usedCapacity) {
         this.usedCapacity = usedCapacity;
     }
 
-    public int getTotalCapacity() {
+    public double getTotalCapacity() {
         return totalCapacity;
     }
 
-    public void setTotalCapacity(int totalCapacity) {
+    public void setTotalCapacity(double totalCapacity) {
         this.totalCapacity = totalCapacity;
     }
 

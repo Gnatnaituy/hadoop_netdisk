@@ -12,6 +12,11 @@ spring:
   hadoop:
     config:
       fs.defaultFS: hdfs://localhost:9000
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 1GB
+      max-request-size: 4GB
 
 mybatis:
   mapper-locations: classpath:mapping/*.xml
