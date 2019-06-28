@@ -89,7 +89,7 @@ public class HdfsServiceImpl implements HdfsService {
      * 下载
      */
     public void download(String srcFile, String desFile) {
-        Path hdfsSrcPath = new Path(generateHdfsPath(srcFile));
+        Path hdfsSrcPath = new Path(srcFile);
         Path localDesPath  = new Path(desFile);
         FileSystem fileSystem = null;
 
@@ -107,7 +107,7 @@ public class HdfsServiceImpl implements HdfsService {
      * 重命名
      */
     public boolean rename(String srcFile, String desFile) {
-        Path srcFilePath = new Path(generateHdfsPath(srcFile));
+        Path srcFilePath = new Path(srcFile);
         Path desFilePath = new Path(desFile);
         FileSystem fileSystem = null;
 
@@ -128,13 +128,13 @@ public class HdfsServiceImpl implements HdfsService {
      * 删除HDFS文件或目录
      */
     public boolean delete(String path) {
-        Path hdfsPath = new Path(generateHdfsPath(path));
+        Path hdfsPath = new Path(path);
         FileSystem fileSystem = null;
 
         try {
             fileSystem = getFileSystem();
 
-            return fileSystem.delete(hdfsPath);
+            return fileSystem.delete(hdfsPath, true);
         } catch (IOException e) {
             logger.error(MessageFormat.format("删除HDFS文件或目录失败，path:{0}", path), e);
         } finally {
@@ -167,7 +167,6 @@ public class HdfsServiceImpl implements HdfsService {
                 if (statuses != null) {
                     for (FileStatus status : statuses) {
                         Map<String, Object> fileMap = new HashMap<>(2);
-                        fileMap.put("fullName", status.getPath().toString());
                         fileMap.put("fileName", status.getPath().getName());
                         fileMap.put("fileSize", status.getLen());
                         fileMap.put("isDir", status.isDirectory());

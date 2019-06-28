@@ -15,6 +15,12 @@ import java.util.Objects;
  */
 public class FileUtil {
 
+    public static String getUserDownloadsDir() {
+        String userHomeFolder = System.getProperty("user.home");
+
+        return userHomeFolder + "/Downloads";
+    }
+
     private static void inputStreamToFile(InputStream inputStream, File file) {
         try {
             OutputStream outputStream = new FileOutputStream(file);

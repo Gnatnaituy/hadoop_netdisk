@@ -7,7 +7,7 @@ package org.jetbrains.hadoop_netdisk.model;
  */
 public class User {
     private String username;
-    private String hashedPassword;
+    private String password;
     private double usedCapacity;
     private double totalCapacity;
     private int age;
@@ -17,9 +17,9 @@ public class User {
 
     public User() {}
 
-    public User(String username, String hashedPassword, int age, int gender, String bio, String avatar) {
+    public User(String username, String password, int age, int gender, String bio, String avatar) {
         this.username = username;
-        this.hashedPassword = hashedPassword;
+        this.password = password;
         this.age = age;
         this.gender = gender;
         this.bio = bio;
@@ -34,12 +34,12 @@ public class User {
         this.username = username;
     }
 
-    public String getHashedPassword() {
-        return hashedPassword;
+    public String getPassword() {
+        return password;
     }
 
-    public void setHashedPassword(String hashedPassword) {
-        this.hashedPassword = hashedPassword;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public double getUsedCapacity() {

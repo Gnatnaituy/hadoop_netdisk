@@ -2,7 +2,7 @@ package org.jetbrains.hadoop_netdisk.service;
 
 import org.jetbrains.hadoop_netdisk.model.User;
 
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @auther hasaker
@@ -20,7 +20,9 @@ public interface UserService {
 
     int updateUsedCapacity(User user);
 
+    void register(User user);
+
     User checkLogin(String username, String password);
 
-    User getCurrentUser(HttpSession session);
+    User getCurrentUser(HttpServletRequest request);
 }

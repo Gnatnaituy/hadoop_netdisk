@@ -52,7 +52,7 @@ public class HdfsTest {
 
     @Test
     public void testDownload() {
-        hdfsService.download("/testDir/magisk.zip", "/Users/hasaker/Desktop/magisk.zip");
+        hdfsService.download("Eminem/WePE_64_V2.0.exe", "/Users/hasaker/Desktop/WePE_64_V2.0.exe");
     }
 
     @Test

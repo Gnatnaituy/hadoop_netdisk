@@ -6,11 +6,11 @@
 
     <resultMap id="UserResultMap" type="org.jetbrains.hadoop_netdisk.model.User">
         <result column="username" jdbcType="VARCHAR" property="username" />
-        <result column="hashed_password" jdbcType="VARCHAR" property="hashedPassword" />
-        <result column="used_capacity" jdbcType="NUMERIC" property="usedCapacity" />
-        <result column="total_capacity" jdbcType="NUMERIC" property="totalCapacity" />
-        <result column="age" jdbcType="NUMERIC" property="age" />
-        <result column="gender" jdbcType="NUMERIC" property="gender" />
+        <result column="password" jdbcType="VARCHAR" property="password" />
+        <result column="used_capacity" jdbcType="DOUBLE" property="usedCapacity" />
+        <result column="total_capacity" jdbcType="DOUBLE" property="totalCapacity" />
+        <result column="age" jdbcType="INTEGER" property="age" />
+        <result column="gender" jdbcType="INTEGER" property="gender" />
         <result column="bio" jdbcType="VARCHAR" property="bio" />
         <result column="avatar" jdbcType="VARCHAR" property="avatar" />
     </resultMap>
@@ -24,8 +24,8 @@
 
     <!-- 添加一个用户 -->
     <insert id="add">
-        INSERT INTO hadoop.users(username, hashed_password)
-        VALUES (#{username}, #{hashedPassword});
+        INSERT INTO hadoop.users(username, password)
+        VALUES (#{username}, #{password});
     </insert>
 
     <!-- 删除一个用户 -->
@@ -38,7 +38,7 @@
     <update id="update">
         UPDATE hadoop.users
         <set>
-            <if test="hashedPassword != null">hashed_password = #{hashedPassword},</if>
+            <if test="password != null">hashed_password = #{password},</if>
             <if test="age != null">age = #{age},</if>
             <if test="gender != null">gender = #{gender},</if>
             <if test="bio != null">bio = #{bio},</if>

@@ -12,7 +12,9 @@ import java.util.List;
  */
 @Repository
 public interface MyFileMapper {
-    MyFile getDetail(String fileName);
+    MyFile getDetailByFileMD5HashCode(String fileMD5HashCode);
+
+    MyFile getDetailByFullName(String fullName);
 
     List<MyFile> getSharedFiles();
 
@@ -23,6 +25,8 @@ public interface MyFileMapper {
     int getSharedFilesCount(String username);
 
     int getTotalDownloadCount(String username);
+
+    int increaseDownloadCount(String fileMD5HashCode);
 
     List<MyFile> getSharedFilesByUsername(String username);
 

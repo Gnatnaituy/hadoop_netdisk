@@ -36,44 +36,50 @@ public class MyFileController {
         this.userService = userService;
     }
 
-    @GetMapping("query/{fileName}")
-    public String query(@PathVariable String fileName) {
-        MyFile myFile = myFileService.getDetail(fileName);
+    /**
+     * Get file detail information
+     */
+    @GetMapping("query/{fullName}")
+    public String query(@PathVariable String fullName) {
+        MyFile myFile = myFileService.getDetailByFullName(fullName);
 
         return myFile == null ? "myFile not found": myFile.toString();
     }
 
+    /**
+     * Upload File from local machine to Hadoop
+     */
     @PostMapping("/upload")
     public String upload(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
         String currentUser = request.getSession().getAttribute("currentUser").toString();
-        logger.info(MessageFormat.format("当前登录用户:  {0}", currentUser));
+        logger.info(MessageFormat.format("Current logged in user:       {0}", currentUser));
 
-        File localFile = FileUtil.multipartFileToFile(file);
-        logger.info(MessageFormat.format("原始文件路径:  {0}", localFile.getPath()));
-
-        // 上传文件到hadoop
-        String desPath = hdfsService.upload(localFile, currentUser + "/" + localFile.getName());
-        logger.info(MessageFormat.format("Hadoop目标路径:  {0}", desPath));
-
-        // 插入文件记录
-        String fileMD5HashCode = MD5Util.getFileMD5(localFile);
-        double fileSize = localFile.length() / 1048576.0;
-        logger.info(MessageFormat.format("文件大小:  {0}MB", fileSize));
-        myFileService.insert(new MyFile(currentUser, fileMD5HashCode, desPath, localFile.getName(), fileSize));
-
-        // 更新用户容量使用信息
-        User user = userService.query(currentUser);
-        user.setUsedCapacity(user.getUsedCapacity() + fileSize);
-        userService.updateUsedCapacity(user);
-
-        // 删除储存在服务器的文件
-        localFile.delete();
+        // Upload to Hadoop
+        myFileService.upload(currentUser, file);
 
         return "redirect:/user/main";
     }
 
-    @PostMapping("/rename")
-    public void rename() {
+    /**
+     * Download file from Hadoop to Local directly
+     */
+    @GetMapping("/download")
+    public int download(@RequestParam String fullName, HttpServletRequest request) {
+        String currentUser = request.getSession().getAttribute("currentUser").toString();
 
+        return myFileService.download(currentUser, fullName);
+    }
+
+    @PostMapping("/rename")
+    public String rename(@RequestParam String srcName, @RequestParam String desName) {
+        hdfsService.rename(srcName, desName);
+
+        return "redirect:/user/main";
+    }
+
+    @PostMapping("/share")
+    public String share(@RequestParam String fullName) {
+
+        return "redirect:/user/main";
     }
 }

@@ -5,12 +5,14 @@ import org.jetbrains.hadoop_netdisk.model.User;
 import org.jetbrains.hadoop_netdisk.service.HdfsService;
 import org.jetbrains.hadoop_netdisk.service.MyFileService;
 import org.jetbrains.hadoop_netdisk.service.UserService;
-import org.jetbrains.hadoop_netdisk.util.MD5Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +29,11 @@ public class UserController {
     private final UserService userService;
     private final HdfsService hdfsService;
     private final MyFileService myFileService;
+    
+    private final String CURRENT_USER = "currentUser";
+    private final String MSG = "msg";
+
+    private Logger logger = LoggerFactory.getLogger(UserController.class);
 
     public UserController(UserService userService, HdfsService hdfsService, MyFileService myFileService) {
         this.userService = userService;
@@ -35,88 +42,88 @@ public class UserController {
     }
 
     /**
-     * 网盘首页
+     * Main page controller
      */
     @GetMapping("/main")
-    public String main(Model model, HttpSession session) {
-        User user = userService.getCurrentUser(session);
-        List<Map<String, Object>> fileList = hdfsService.listFiles(user.getUsername(), null);
+    public String main(Model model, HttpServletRequest request) {
+        User user = userService.getCurrentUser(request);
+        logger.info(MessageFormat.format("Current user --> {0}", user.getUsername()));
 
-        // 用户信息
+        List<Map<String, Object>> fileListMap = hdfsService.listFiles(user.getUsername(), null);
+
+        // Add user information
         model.addAttribute("user", user);
-        // 用户家目录
-        model.addAttribute("fileList", fileList);
+        // Add user file information
+        model.addAttribute("fileListMap", fileListMap);
 
         return "main";
     }
 
     /**
-     * 个人主页
+     * Personal information page
      */
-    @PostMapping("/about")
-    public String about(Model model, HttpSession session) {
-        User user = userService.getCurrentUser(session);
-        List<MyFile> mySharedFiles = myFileService.getSharedFilesByUsername(user.getUsername());
-
-        // 用户分享文件列表
-        model.addAttribute("mySharedFiles", mySharedFiles);
-        // 用户信息
-        model.addAttribute("user", user);
-
-        return "about";
-    }
+//    @GetMapping("/about")
+//    public String about(Model model, HttpServletRequest request) {
+//        User user = userService.getCurrentUser(request);
+//        logger.info(MessageFormat.format("Current user --> {0}", user.getUsername()));
+//
+//        List<MyFile> mySharedFiles = myFileService.getSharedFilesByUsername(user.getUsername());
+//
+//        // All the files that user shared
+//        model.addAttribute("mySharedFiles", mySharedFiles);
+//        // User's information
+//        model.addAttribute("user", user);
+//
+//        return "about";
+//    }
 
     /**
-     * 登录界面
+     * Login View
      */
     @GetMapping("/login")
-    public String login(Model model, HttpSession session) {
+    public String login(Model model, HttpServletRequest request) {
         model.addAttribute("user", new User());
 
-        // 如果有提示信息 则在登录页面显示
-        if (session.getAttribute("msg") != null) {
-            model.addAttribute("msg", session.getAttribute("msg").toString());
-            session.removeAttribute("msg");
+        // Display tips if there is
+        if (request.getSession().getAttribute(MSG) != null) {
+            model.addAttribute(MSG, request.getSession().getAttribute(MSG).toString());
+            request.getSession().removeAttribute(MSG);
         }
 
         return "login";
     }
 
     /**
-     * 登录
+     * Do login
      */
     @PostMapping("/login")
-    public String doLogin(@ModelAttribute User user, Model model, HttpSession session) {
-        User target = userService.query(user.getUsername());
+    public String doLogin(@ModelAttribute User user, Model model, HttpServletRequest request) {
+        User target = userService.checkLogin(user.getUsername(), user.getPassword());
 
         if (target == null) {
-            session.setAttribute("msg", "用户不存在!");
-
-            return "redirect:/user/login";
-        } else if (!target.getHashedPassword().equals(MD5Util.getStringMD5(user.getHashedPassword()))) {
-            session.setAttribute("msg", "密码错误!");
+            request.getSession().setAttribute(MSG, "用户不存在或密码错误!");
 
             return "redirect:/user/login";
         }
 
         model.addAttribute("user", target);
-        session.setAttribute("currentUser", user.getUsername());
+        request.getSession().setAttribute(CURRENT_USER, user.getUsername());
 
         return "redirect:/user/main";
     }
 
     /**
-     * 登出
+     * Logout
      */
-    @PostMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
+    @GetMapping("/logout")
+    public String logout(HttpServletRequest request) {
+        request.getSession().invalidate();
 
         return "redirect:/user/login";
     }
 
     /**
-     * 注册界面
+     * Register view
      */
     @GetMapping("/register")
     public String register(Model model) {
@@ -126,33 +133,28 @@ public class UserController {
     }
 
     /**
-     * 注册
+     * Do register
      */
     @PostMapping("/register")
-    public String doRegister(@ModelAttribute User user, HttpSession session) {
+    public String doRegister(@ModelAttribute User user, HttpServletRequest request) {
         if (userService.query(user.getUsername()) != null) {
-            session.setAttribute("msg", "用户已存在!");
+            request.getSession().setAttribute(MSG, "用户已存在!");
 
             return "redirect:/user/register";
         }
 
-        user.setHashedPassword(MD5Util.getStringMD5(user.getHashedPassword()));
-
-        // 将用户信息存入MySQL中
-        userService.add(user);
-
-        // 在hadoop中创建用户家目录
-        hdfsService.mkdir(user.getUsername());
+        userService.register(user);
 
         return "redirect:/user/login";
     }
 
     /**
-     * 注销
+     * Unregister
      */
-    @PostMapping("/unregister")
-    public String unregister(HttpSession session) {
-        User user = userService.getCurrentUser(session);
+    @GetMapping("/unregister")
+    public String unregister(HttpServletRequest request) {
+        User user = userService.getCurrentUser(request);
+        logger.info(MessageFormat.format("User --> {0} unregistered!", user.getUsername()));
         userService.delete(user);
 
         return "redirect:/user/login";

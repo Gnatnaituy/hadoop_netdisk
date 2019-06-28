@@ -1,44 +1,121 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org" lang="en-US">
+
 <head>
-    <title>Hadoop网盘</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title th:text="${user.getUsername() + '的网盘'}"></title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.3.1/css/bootstrap.min.css}"/>
+    <script type="text/javascript" th:src="@{/webjars/jquery/3.4.1/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/4.3.1/js/bootstrap.min.js}"></script>
 </head>
+
 <body>
-<h1 th:text="${user.getUsername()}">的网盘</h1>
 
-<table>
-    <tr>
-        <th>fullName</th>
-        <th>fileName</th>
-        <th>fileSize</th>
-        <th>isDir</th>
-    </tr>
-    <tr th:each="file : ${fileList}">
-        <td th:text="${file.get('fullName')}"></td>
-        <td th:text="${file.get('fileName')}"></td>
-        <td th:text="${file.get('fileSize')}"></td>
-        <td th:text="${file.get('isDir')}"></td>
-    </tr>
-</table>
+<div>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" th:href="@{/user/main}">Hadoop Netdisk</a>
+            </div>
+            <div class="collapse navbar-collapse justify-content-end">
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button"
+                           aria-haspopup="true" aria-expanded="false" th:text="${user.getUsername()}"></a>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#">修改资料</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" th:href="@{/user/logout}">退出</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" th:href="@{/user/unregister}">注销</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
 
+<div class="container-fluid" style="margin-top: 20px">
+    <div class="row">
+        <!-- Left Information about the user -->
+        <div class="col-lg-2">
+            <div class="card">
+                <img src="#" th:src="${user.getAvatar()}" class="card-img-top" alt="avatar">
+                <div class="card-body">
+                    <h4 class="card-title font-weight-bold" th:text="${user.getUsername()}"></h4>
+                    <p class="card-text font-weight-light" th:text="${user.bio}"></p>
+                </div>
+            </div>
+            <div class="card" style="margin-top: 16px">
+                <div class="card-header">
+                    容量使用情况
+                </div>
+                <div class="card-body">
+                    <div class="progress">
+                        <div id="capacity" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item font-weight-light"
+                        th:text="'已用容量: ' +
+                        ${#numbers.formatDecimal(user.getUsedCapacity(), 1, 2) + ' MB'}">
+                    </li>
+                    <li class="list-group-item font-weight-light"
+                        th:text="'剩余容量: ' +
+                        ${#numbers.formatDecimal((user.getTotalCapacity() - user.getUsedCapacity())/1024, 1, 2) + ' GB'}">
+                    </li>
+                    <li class="list-group-item font-weight-light"
+                        th:text="'总容量:  ' +
+                        ${#numbers.formatDecimal(user.getTotalCapacity()/1024, 1, 2)} + ' GB'">
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- Center File Manager -->
+        <div class="col-lg-7">
+            <div>
+                <table class="table">
+                    <thead class="thead-dark">
+                    <tr>
+                        <th>文件</th>
+                        <th>大小</th>
+                        <th>类型</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="file : ${fileListMap}">
+                        <td th:text="${file.get('fileName')}">
+                        </td>
+                        <td th:text="${file.get('fileSize')}"></td>
+                        <td th:text="${file.get('isDir')}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Right Shared files -->
+        <div class="col-lg-3">
+            <div>
+                <form id="upload" th:action="@{/file/upload}" th:method="post" enctype="multipart/form-data">
+                    <input type="file" value="选择文件">
+                    <button type="submit" class="btn btn-primary">上传</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-<form id="upload" th:action="@{/file/upload}" th:method="post" enctype="multipart/form-data">
-    <input type="file" name="file">
-    <button type="submit">上传</button>
-</form>
+<p class="hide text-hide" th:text="${user.getUsedCapacity()}" id="used"></p>
+<p class="hide text-hide" th:text="${user.getTotalCapacity()}" id="total"></p>
 
-<form id="logout" th:action="@{/user/logout}" th:method="post">
-    <input type="submit" value="退出登录">
-</form>
-
-<form id="unregister" th:action="@{/user/unregister}" th:method="post">
-    <input type="submit" value="注销用户">
-</form>
-
-<form id="about" th:action="@{/user/about}" th:method="post">
-    <input type="submit" value="关于我">
-</form>
+<script>
+    $().ready(function () {
+        var percentage = Math.round(parseInt($("#used").text()) / parseInt($("#total").text()) * 100);
+        $("#capacity").attr("aria-valuenow", percentage);
+        $("#capacity").attr("style", "width:" + percentage + "%");
+    })
+</script>
 
 </body>
 </html>

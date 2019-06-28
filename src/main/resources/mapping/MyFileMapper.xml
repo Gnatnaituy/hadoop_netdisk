@@ -10,7 +10,7 @@
         <result column="file_md5hashcode" jdbcType="CHAR" property="fileMD5HashCode" />
         <result column="full_name" jdbcType="VARCHAR" property="fullName" />
         <result column="file_name" jdbcType="VARCHAR" property="fileName" />
-        <result column="file_size" jdbcType="NUMERIC" property="fileSize" />
+        <result column="file_size" jdbcType="DOUBLE" property="fileSize" />
         <result column="upload_date" jdbcType="DATE" property="uploadDate" />
         <result column="is_deleted" jdbcType="BOOLEAN" property="isDeleted" />
         <result column="delete_date" jdbcType="DATE" property="deleteDate" />
@@ -19,14 +19,21 @@
         <result column="share_expire_date" jdbcType="DATE" property="shareExpireDate" />
         <result column="share_encrypt" jdbcType="BOOLEAN" property="shareEncrypt" />
         <result column="share_encrypt_code" jdbcType="VARCHAR" property="shareEncryptCode" />
-        <result column="download_count" jdbcType="NUMERIC" property="downloadCount" />
+        <result column="download_count" jdbcType="INTEGER" property="downloadCount" />
     </resultMap>
 
-    <!-- 获取详尽信息 -->
-    <select id="getDetail" resultMap="FileResultMap">
+    <!-- 通过fileMD5HashCode获取文件 -->
+    <select id="getDetailByFileMD5HashCode" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
         WHERE file_md5hashcode = #{fileMD5HashCode}
+    </select>
+
+    <!-- 通过fullName获取文件 -->
+    <select id="getDetailByFullName" resultMap="FileResultMap">
+        SELECT *
+        FROM hadoop.files
+        WHERE full_name = #{fullName}
     </select>
 
     <!-- 获取分享文件列表 -->
@@ -38,14 +45,18 @@
 
     <!-- 将分享文件列表按下载次数排序 -->
     <select id="getSharedFilesOrderByDownloadCount" resultMap="FileResultMap">
-        <include refid="getSharedFiles" />
-        ORDER BY #{download_count} DESC
+        SELECT *
+        FROM hadoop.files
+        WHERE is_shared = TRUE
+        ORDER BY #{downloadCount} DESC
     </select>
 
     <!-- 将分享文件列表按分享时间排序 -->
     <select id="getSharedFilesOrderByShareDate" resultMap="FileResultMap">
-        <include refid="getSharedFiles" />
-        ORDER BY #{shared_date}
+        SELECT *
+        FROM hadoop.files
+        WHERE is_shared = TRUE
+        ORDER BY #{sharedDate}
     </select>
 
     <!-- 搜索用户文件 -->
@@ -70,18 +81,25 @@
     </select>
 
     <!-- 查询某用户分享的文件数 -->
-    <select id="getSharedFilesCount" resultType="NUMERIC">
+    <select id="getSharedFilesCount" resultType="INTEGER">
         SELECT count(owner)
         FROM hadoop.files
         WHERE is_shared = TRUE AND owner = #{username}
     </select>
 
     <!-- 查询某用户分享文件的下载次数总合 -->
-    <select id="getTotalDownloadCount" resultType="NUMERIC">
+    <select id="getTotalDownloadCount" resultType="INTEGER">
         SELECT sum(download_count)
         FROM hadoop.files
         WHERE is_shared = TRUE AND owner = #{username}
     </select>
+
+    <!-- 增加下载次数 -->
+    <update id="increaseDownloadCount">
+        UPDATE hadoop.files
+        SET download_count = download_count + 1
+        WHERE full_name = #{fileMD5HashCode}
+    </update>
 
     <!-- 插入 -->
     <insert id="insert">

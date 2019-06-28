@@ -17,6 +17,8 @@ spring:
       enabled: true
       max-file-size: 1GB
       max-request-size: 4GB
+  mvc:
+    static-path-pattern: /static/**
 
 mybatis:
   mapper-locations: classpath:mapping/*.xml
