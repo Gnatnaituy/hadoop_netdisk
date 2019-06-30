@@ -2,17 +2,15 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.jetbrains.hadoop_netdisk.mapper.UserMapper">
+<mapper namespace="org.jetbrains.hadoop_netdisk.mapper.HadoopUserMapper">
 
-    <resultMap id="UserResultMap" type="org.jetbrains.hadoop_netdisk.model.User">
+    <resultMap id="UserResultMap" type="org.jetbrains.hadoop_netdisk.entity.HadoopUser">
         <result column="username" jdbcType="VARCHAR" property="username" />
         <result column="password" jdbcType="VARCHAR" property="password" />
-        <result column="used_capacity" jdbcType="DOUBLE" property="usedCapacity" />
-        <result column="total_capacity" jdbcType="DOUBLE" property="totalCapacity" />
-        <result column="age" jdbcType="INTEGER" property="age" />
-        <result column="gender" jdbcType="INTEGER" property="gender" />
         <result column="bio" jdbcType="VARCHAR" property="bio" />
         <result column="avatar" jdbcType="VARCHAR" property="avatar" />
+        <result column="used_capacity" jdbcType="DOUBLE" property="usedCapacity" />
+        <result column="total_capacity" jdbcType="DOUBLE" property="totalCapacity" />
     </resultMap>
 
     <!-- 查询用户详尽信息 -->
@@ -24,8 +22,8 @@
 
     <!-- 添加一个用户 -->
     <insert id="add">
-        INSERT INTO hadoop.users(username, password)
-        VALUES (#{username}, #{password});
+        INSERT INTO hadoop.users(username, password, bio)
+        VALUES (#{username}, #{password}, #{bio});
     </insert>
 
     <!-- 删除一个用户 -->
@@ -39,8 +37,6 @@
         UPDATE hadoop.users
         <set>
             <if test="password != null">hashed_password = #{password},</if>
-            <if test="age != null">age = #{age},</if>
-            <if test="gender != null">gender = #{gender},</if>
             <if test="bio != null">bio = #{bio},</if>
             <if test="avatar != null}">avatar = #{avatar}</if>
         </set>

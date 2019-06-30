@@ -1,11 +1,11 @@
 package org.jetbrains.hadoop_netdisk.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.text.MessageFormat;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -14,6 +14,8 @@ import java.util.Objects;
  * @description
  */
 public class FileUtil {
+    private static final int HDFS_URL_LENGTH = 21;
+    private static final int HASHCODE_LENGTH = 32;
 
     public static String getUserDownloadsDir() {
         String userHomeFolder = System.getProperty("user.home");
@@ -52,5 +54,62 @@ public class FileUtil {
         }
 
         return file;
+    }
+
+    public static String getRelativePath(String hdfsPath) {
+
+        return hdfsPath.substring(HDFS_URL_LENGTH + 1);
+    }
+
+    public static String getHashCode(String hdfsPath) {
+        int lastSlashIndex = hdfsPath.lastIndexOf('/');
+
+        return hdfsPath.substring(lastSlashIndex + 1, lastSlashIndex + HASHCODE_LENGTH + 1);
+    }
+
+    public static String getFileName(String hdfsPath, boolean isDir) {
+        if (isDir) {
+            return hdfsPath.substring(hdfsPath.lastIndexOf('/') + 1);
+        } else {
+            return hdfsPath.substring(hdfsPath.lastIndexOf('/') + HASHCODE_LENGTH + 1);
+        }
+    }
+
+    public static String exceptFileName(String hdfsPath, boolean isDir) {
+        if (isDir) {
+            return hdfsPath.substring(0, hdfsPath.lastIndexOf('/') + 2);
+        } else {
+            return hdfsPath.substring(0, hdfsPath.lastIndexOf('/') + HASHCODE_LENGTH + 2);
+        }
+    }
+
+    public static void sortFileListByName(List<Map<String, Object>> fileList) {
+        fileList.sort((o1, o2) -> {
+            if (o1.get("isDir") == o2.get("isDir")) {
+                return o1.get("fileName").toString().toLowerCase().compareTo(o2.get("fileName").toString().toLowerCase());
+            } else {
+                return -o1.get("isDir").toString().compareTo(o2.get("isDir").toString());
+            }
+        });
+    }
+
+    public static void sortFileListByLastModifiedDate(List<Map<String, Object>> fileList) {
+        fileList.sort((o1, o2) -> {
+            if (o1.get("isDir") == o2.get("isDir")) {
+                return -o1.get("lastModifiedDate").toString().compareTo(o2.get("lastModifiedDate").toString());
+            } else {
+                return -o1.get("isDir").toString().compareTo(o2.get("isDir").toString());
+            }
+        });
+    }
+
+    public static void sortFileListByFileSize(List<Map<String, Object>> fileList) {
+        fileList.sort((o1, o2) -> {
+            if (o1.get("isDir") == o2.get("isDir") && !((boolean) o1.get("isDir"))) {
+                return ((long) o1.get("fileSize")) > ((long) o2.get("fileSize")) ? 1 : -1;
+            } else {
+                return -o1.get("isDir").toString().compareTo(o2.get("isDir").toString());
+            }
+        });
     }
 }

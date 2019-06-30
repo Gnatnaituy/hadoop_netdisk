@@ -1,4 +1,4 @@
-package org.jetbrains.hadoop_netdisk.model;
+package org.jetbrains.hadoop_netdisk.entity;
 
 import java.sql.Date;
 
@@ -7,11 +7,9 @@ import java.sql.Date;
  * @create_date 2019-06-19 18:27
  * @description
  */
-public class MyFile {
-    private String owner;
-    private String fileMD5HashCode;
-    private String fullName;
-    private String fileName;
+public class HadoopFile {
+    private String hashCode;
+    private String hdfsPath;
     private double fileSize;
     private Date uploadDate;
     private boolean isDeleted;
@@ -22,41 +20,29 @@ public class MyFile {
     private boolean shareEncrypt;
     private String shareEncryptCode;
     private int downloadCount;
+    private String owner;
 
-    public MyFile(String owner, String fileMD5HashCode, String fullName, String fileName, double fileSize) {
-        this.owner = owner;
-        this.fileMD5HashCode = fileMD5HashCode;
-        this.fullName = fullName;
-        this.fileName = fileName;
+    public HadoopFile(String hashCode, String hdfsPath, double fileSize, String owner) {
+        this.hashCode = hashCode;
+        this.hdfsPath = hdfsPath;
         this.fileSize = fileSize;
-    }
-
-    public String getFileMD5HashCode() {
-        return fileMD5HashCode;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public String getOwner() {
-        return owner;
-    }
-
-    public void setOwner(String owner) {
         this.owner = owner;
+    }
+
+    public String getHashCode() {
+        return hashCode;
+    }
+
+    public void setHashCode(String hashCode) {
+        this.hashCode = hashCode;
+    }
+
+    public String getHdfsPath() {
+        return hdfsPath;
+    }
+
+    public void setHdfsPath(String hdfsPath) {
+        this.hdfsPath = hdfsPath;
     }
 
     public double getFileSize() {
@@ -132,10 +118,18 @@ public class MyFile {
     }
 
     public int getDownloadCount() {
-        return this.downloadCount;
+        return downloadCount;
     }
 
     public void setDownloadCount(int downloadCount) {
         this.downloadCount = downloadCount;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 }

@@ -6,16 +6,15 @@ import com.alibaba.fastjson.JSON;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
+import org.jetbrains.hadoop_netdisk.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * @auther hasaker
@@ -38,7 +37,7 @@ public class HdfsServiceImpl implements HdfsService {
     }
 
     /**
-     * 创建目录
+     * Create directory on Hadoop
      */
     public boolean mkdir(String path) {
         if (checkExists(path)) {
@@ -49,11 +48,11 @@ public class HdfsServiceImpl implements HdfsService {
             try {
                 fileSystem = getFileSystem();
                 String hdfsPath = generateHdfsPath(path);
-                logger.info(MessageFormat.format("hdfsPath --> {0}", hdfsPath));
+                logger.info(MessageFormat.format("Create directory on Hadoop: {0}", hdfsPath));
 
                 return fileSystem.mkdirs(new Path(hdfsPath));
             } catch (IOException e) {
-                logger.error(MessageFormat.format("创建HDFS目录失败, path:{0}", path), e);
+                logger.error(MessageFormat.format("Create directory on Hadoop failed, path:{0}", path), e);
 
                 return false;
             } finally {
@@ -63,52 +62,54 @@ public class HdfsServiceImpl implements HdfsService {
     }
 
     /**
-     * 上传
-     * @return 上传后文件在hadoop上的路径
+     * Upload local file to Hadoop
+     * @return hdfsPath file absolute path on Hadoop if success else ""
      */
     public String upload(File srcFile, String desPath) {
-        Path localSrcPath = new Path(srcFile.getPath());
-        Path hdfsDesPath = new Path(generateHdfsPath(desPath));
+        Path localPath = new Path(srcFile.getPath());
+        Path hdfsPath = new Path(generateHdfsPath(desPath));
         FileSystem fileSystem = null;
 
         try {
             fileSystem = getFileSystem();
-            fileSystem.copyFromLocalFile(localSrcPath, hdfsDesPath);
+            fileSystem.copyFromLocalFile(localPath, hdfsPath);
 
-            return hdfsDesPath.toString();
+            return hdfsPath.toString();
         } catch (IOException e) {
-            logger.error(MessageFormat.format("上传文件到HDFS失败, srcFile:{0}, desPath:{1}", srcFile, desPath), e);
+            logger.error(MessageFormat.format("Upload local file to Hadoop failed, srcFile:{0}, desPath:{1}", srcFile,
+                    desPath), e);
 
-            return "上传失败!";
+            return "";
         } finally {
             close(fileSystem);
         }
     }
 
     /**
-     * 下载
+     * Download file from Hadoop
      */
     public void download(String srcFile, String desFile) {
-        Path hdfsSrcPath = new Path(srcFile);
-        Path localDesPath  = new Path(desFile);
+        Path hdfsPath = new Path(generateHdfsPath(srcFile));
+        Path localPath  = new Path(desFile);
         FileSystem fileSystem = null;
 
         try {
             fileSystem = getFileSystem();
-            fileSystem.copyToLocalFile(hdfsSrcPath, localDesPath);
+            fileSystem.copyToLocalFile(hdfsPath, localPath);
         } catch (IOException e) {
-            logger.error(MessageFormat.format("从HDFS下载文件至本地失败，srcFile:{0}, desFile:{1}", srcFile, desFile), e);
+            logger.error(MessageFormat.format("Download form HDFS failed，srcFile:{0}, desFile:{1}", srcFile, desFile),
+                    e);
         } finally {
             close(fileSystem);
         }
     }
 
     /**
-     * 重命名
+     * Rename target on Hadoop
      */
-    public boolean rename(String srcFile, String desFile) {
-        Path srcFilePath = new Path(srcFile);
-        Path desFilePath = new Path(desFile);
+    public boolean rename(String srcPath, String desPath) {
+        Path srcFilePath = new Path(generateHdfsPath(srcPath));
+        Path desFilePath = new Path(generateHdfsPath(desPath));
         FileSystem fileSystem = null;
 
         try {
@@ -116,7 +117,7 @@ public class HdfsServiceImpl implements HdfsService {
 
             return fileSystem.rename(srcFilePath, desFilePath);
         } catch (IOException e) {
-            logger.error(MessageFormat.format("重命名失败，srcFile:{0}, desFile:{1}", srcFile, desFile), e);
+            logger.error(MessageFormat.format("Rename target failed，srcPath:{0}, desPath:{1}", srcPath, desPath), e);
         } finally {
             close(fileSystem);
         }
@@ -125,10 +126,10 @@ public class HdfsServiceImpl implements HdfsService {
     }
 
     /**
-     * 删除HDFS文件或目录
+     * Delete target on Hadoop
      */
-    public boolean delete(String path) {
-        Path hdfsPath = new Path(path);
+    public boolean realDelete(String path) {
+        Path hdfsPath = new Path(generateHdfsPath(path));
         FileSystem fileSystem = null;
 
         try {
@@ -136,7 +137,7 @@ public class HdfsServiceImpl implements HdfsService {
 
             return fileSystem.delete(hdfsPath, true);
         } catch (IOException e) {
-            logger.error(MessageFormat.format("删除HDFS文件或目录失败，path:{0}", path), e);
+            logger.error(MessageFormat.format("Delete target on Hadoop failed，path:{0}", path), e);
         } finally {
             close(fileSystem);
         }
@@ -145,7 +146,16 @@ public class HdfsServiceImpl implements HdfsService {
     }
 
     /**
-     * 获取文件列表
+     * Fake delete target on Hadoop
+     */
+    public boolean fakeDelete(String path) {
+        String deletedPath = path + "-deleted";
+
+        return rename(path, deletedPath);
+    }
+
+    /**
+     * Get file and directory list of target path on Hadoop
      */
     public List<Map<String, Object>> listFiles(String path, PathFilter pathFilter) {
         List<Map<String, Object>> res = new ArrayList<>();
@@ -166,26 +176,43 @@ public class HdfsServiceImpl implements HdfsService {
 
                 if (statuses != null) {
                     for (FileStatus status : statuses) {
-                        Map<String, Object> fileMap = new HashMap<>(2);
-                        fileMap.put("fileName", status.getPath().getName());
-                        fileMap.put("fileSize", status.getLen());
-                        fileMap.put("isDir", status.isDirectory());
+                        Map<String, Object> file = new HashMap<>();
+                        String lastModifiedDate =
+                                new SimpleDateFormat("MM-dd HH:mm").format(new Date(status.getModificationTime()));
 
-                        res.add(fileMap);
+                        file.put("hdfsPath", status.getPath());
+                        logger.info(MessageFormat.format("hdfsPath: {0}", status.getPath()));
+                        file.put("lastModifiedDate", lastModifiedDate);
+                        file.put("isDir", status.isDirectory());
+
+                        if (status.isDirectory()) {
+                            file.put("fileName", status.getPath().getName());
+                        } else {
+                            file.put("hashCode", status.getPath().getName().substring(0, 32));
+                            file.put("fileName", status.getPath().getName().substring(33));
+                            file.put("fileSize", status.getLen());
+                        }
+
+                        res.add(file);
                     }
                 }
             } catch (IOException e) {
-                logger.error(MessageFormat.format("获取HDFS上面的某个路径下面的所有文件失败，path:{0}", path), e);
+                logger.error(MessageFormat.format("Get file and directory list of target path on Hadoop " +
+                        "failed，path:{0}", path), e);
             } finally {
                 close(fileSystem);
             }
         }
 
+        // Sort fileList Alphabetically
+        // Directory always at the previous of file
+        FileUtil.sortFileListByLastModifiedDate(res);
+
         return res;
     }
 
     /**
-     * 打开HDFS文件并返回一个InputStream
+     * Open HDFS file and return InputStream
      */
     public FSDataInputStream open(String path) {
         Path hdfsPath = new Path(generateHdfsPath(path));
@@ -196,7 +223,7 @@ public class HdfsServiceImpl implements HdfsService {
 
             return fileSystem.open(hdfsPath);
         } catch (IOException e) {
-            logger.error(MessageFormat.format("打开HDFS上面的文件失败，path:{0}", path), e);
+            logger.error(MessageFormat.format("Open HDFS file failed，path:{0}", path), e);
         } finally {
             close(fileSystem);
         }
@@ -205,7 +232,7 @@ public class HdfsServiceImpl implements HdfsService {
     }
 
     /**
-     * 打开HDFS文件并返回byte数组, 用于web端下载文件
+     * Open HDFS file and return byte array
      */
     public byte[] openWithBytes(String path) {
         Path hdfsPath = new Path(generateHdfsPath(path));
@@ -218,7 +245,7 @@ public class HdfsServiceImpl implements HdfsService {
 
             return IOUtils.toByteArray(inputStream);
         } catch (IOException e) {
-            logger.error(MessageFormat.format("打开HDFS上面的文件失败，path:{0}",path),e);
+            logger.error(MessageFormat.format("Open HDFS file failed，path:{0}",path),e);
         } finally {
             close(fileSystem);
             if (inputStream != null) {
@@ -234,7 +261,7 @@ public class HdfsServiceImpl implements HdfsService {
     }
 
     /**
-     * 打开HDFS文件并返回String字符串
+     * Open HDFS file and return String
      */
     public String openWithString(String path) {
         Path hdfsPath = new Path(generateHdfsPath(path));
@@ -247,7 +274,7 @@ public class HdfsServiceImpl implements HdfsService {
 
             return IOUtils.toString(inputStream);
         } catch (IOException e) {
-            logger.error(MessageFormat.format("打开HDFS上面的文件失败，path:{0}",path),e);
+            logger.error(MessageFormat.format("Open HDFS file failed，path:{0}",path),e);
         } finally {
             close(fileSystem);
             if (inputStream != null) {
@@ -263,7 +290,7 @@ public class HdfsServiceImpl implements HdfsService {
     }
 
     /**
-     * 打开HDFS文件并返回Java对象
+     * Open HDFS file and return JSON object
      */
     public <T> T openWithObject(String path, Class<T> clazz) {
         String jsonStr = this.openWithString(path);
@@ -272,7 +299,7 @@ public class HdfsServiceImpl implements HdfsService {
     }
 
     /**
-     * 获取文件在Hadoop集群上的位置
+     * Get file block location information on Hadoop cluster
      */
     public BlockLocation[] getFileBlockLocations(String path) {
         Path hdfsPath = new Path(generateHdfsPath(path));
@@ -284,7 +311,7 @@ public class HdfsServiceImpl implements HdfsService {
 
             return fileSystem.getFileBlockLocations(fileStatus, 0, fileStatus.getLen());
         } catch (IOException e) {
-            logger.error(MessageFormat.format("获取某个文件在HDFS集群的位置失败，path:{0}", path), e);
+            logger.error(MessageFormat.format("Get file block locations failed，path:{0}", path), e);
         } finally {
             close(fileSystem);
         }
@@ -293,7 +320,7 @@ public class HdfsServiceImpl implements HdfsService {
     }
 
     /**
-     * 判断某个文件是否存在
+     * Judge target exists or not on Hadoop
      */
     private boolean checkExists(String path) {
         FileSystem fileSystem = null;
@@ -304,7 +331,7 @@ public class HdfsServiceImpl implements HdfsService {
 
             return fileSystem.exists(new Path(hdfsPath));
         } catch (IOException e) {
-            logger.error(MessageFormat.format("判断文件是否存在与HDFS失败, path:{0}", path), e);
+            logger.error(MessageFormat.format("Check exists failed, path:{0}", path), e);
         } finally {
             close(fileSystem);
         }
@@ -313,22 +340,22 @@ public class HdfsServiceImpl implements HdfsService {
     }
 
     /**
-     * 将相对路径转化为HDFS绝对路径
+     * Convert relative path to absolute HDFS path
      */
-    private String generateHdfsPath(String desPath) {
+    private String generateHdfsPath(String path) {
         String hdfsPath = defaultHdfsUri;
 
-        if (desPath.startsWith("/")) {
-            hdfsPath += desPath;
+        if (path.startsWith("/")) {
+            hdfsPath += path;
         } else {
-            hdfsPath = hdfsPath + "/" + desPath;
+            hdfsPath = hdfsPath + "/" + path;
         }
 
         return hdfsPath;
     }
 
     /**
-     * 关闭FileSystem
+     * Close FileSystem
      */
     private void close(FileSystem fileSystem) {
         if (fileSystem != null) {

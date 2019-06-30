@@ -1,11 +1,11 @@
 #!/bin/sh
 # ----------------------------------------------------------------------------
 # Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE myFile
+# or more contributor license agreements.  See the NOTICE hadoopFile
 # distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this myFile
+# regarding copyright ownership.  The ASF licenses this hadoopFile
 # to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this myFile except in compliance
+# "License"); you may not use this hadoopFile except in compliance
 # with the License.  You may obtain a copy of the License at
 #
 #    https://www.apache.org/licenses/LICENSE-2.0
@@ -188,7 +188,7 @@ find_maven_basedir() {
   echo "${basedir}"
 }
 
-# concatenates all lines of a myFile
+# concatenates all lines of a hadoopFile
 concat_lines() {
   if [ -f "$1" ]; then
     echo "$(tr -s '\n' ' ' < "$1")"

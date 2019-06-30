@@ -1,27 +1,23 @@
-package org.jetbrains.hadoop_netdisk.model;
+package org.jetbrains.hadoop_netdisk.entity;
 
 /**
  * @auther hasaker
  * @create_date 2019-06-19 16:31
  * @description
  */
-public class User {
+public class HadoopUser {
     private String username;
     private String password;
     private double usedCapacity;
     private double totalCapacity;
-    private int age;
-    private int gender;
     private String bio;
     private String avatar;
 
-    public User() {}
+    public HadoopUser() {}
 
-    public User(String username, String password, int age, int gender, String bio, String avatar) {
+    public HadoopUser(String username, String password, String bio, String avatar) {
         this.username = username;
         this.password = password;
-        this.age = age;
-        this.gender = gender;
         this.bio = bio;
         this.avatar = avatar;
     }
@@ -56,22 +52,6 @@ public class User {
 
     public void setTotalCapacity(double totalCapacity) {
         this.totalCapacity = totalCapacity;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public int getGender() {
-        return gender;
-    }
-
-    public void setGender(int gender) {
-        this.gender = gender;
     }
 
     public String getBio() {

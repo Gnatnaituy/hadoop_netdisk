@@ -4,6 +4,7 @@
 <head>
     <title th:text="${user.getUsername() + '的网盘'}"></title>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.3.1/css/bootstrap.min.css}"/>
+    <script type="text/javascript" th:src="@{../static/js/popper.min.js}"></script>
     <script type="text/javascript" th:src="@{/webjars/jquery/3.4.1/jquery.min.js}"></script>
     <script type="text/javascript" th:src="@{/webjars/bootstrap/4.3.1/js/bootstrap.min.js}"></script>
 </head>
@@ -17,6 +18,10 @@
                 <a class="navbar-brand" th:href="@{/user/main}">Hadoop Netdisk</a>
             </div>
             <div class="collapse navbar-collapse justify-content-end">
+                <form class="form-inline my-2 my-lg-0">
+                    <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+                </form>
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button"
@@ -38,18 +43,16 @@
 <div class="container-fluid" style="margin-top: 20px">
     <div class="row">
         <!-- Left Information about the user -->
-        <div class="col-lg-2">
+        <div class="col-2">
             <div class="card">
                 <img src="#" th:src="${user.getAvatar()}" class="card-img-top" alt="avatar">
                 <div class="card-body">
                     <h4 class="card-title font-weight-bold" th:text="${user.getUsername()}"></h4>
-                    <p class="card-text font-weight-light" th:text="${user.bio}"></p>
+                    <p class="card-text" th:text="${user.bio}"></p>
                 </div>
             </div>
             <div class="card" style="margin-top: 16px">
-                <div class="card-header">
-                    容量使用情况
-                </div>
+                <div class="card-header">容量使用情况</div>
                 <div class="card-body">
                     <div class="progress">
                         <div id="capacity" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100">
@@ -57,50 +60,136 @@
                     </div>
                 </div>
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item font-weight-light"
-                        th:text="'已用容量: ' +
+                    <li class="list-group-item" th:if="${user.getUsedCapacity() ge 1024.0}" th:text="'已用容量: ' +
+                        ${#numbers.formatDecimal(user.getUsedCapacity()/1024, 1, 2) + ' GB'}">
+                    </li>
+                    <li class="list-group-item" th:if="${user.getUsedCapacity() lt 1024.0}" th:text="'已用容量: ' +
                         ${#numbers.formatDecimal(user.getUsedCapacity(), 1, 2) + ' MB'}">
                     </li>
-                    <li class="list-group-item font-weight-light"
-                        th:text="'剩余容量: ' +
+                    <li class="list-group-item" th:if="${user.getUsedCapacity() ge 1024.0}" th:text="'剩余容量: ' +
+                        ${#numbers.formatDecimal((user.getTotalCapacity() - user.getUsedCapacity()), 1, 2) + ' MB'}">
+                    </li>
+                    <li class="list-group-item" th:if="${user.getUsedCapacity() lt 1024.0}" th:text="'剩余容量: ' +
                         ${#numbers.formatDecimal((user.getTotalCapacity() - user.getUsedCapacity())/1024, 1, 2) + ' GB'}">
                     </li>
-                    <li class="list-group-item font-weight-light"
-                        th:text="'总容量:  ' +
+                    <li class="list-group-item" th:text="'总容量: ' +
                         ${#numbers.formatDecimal(user.getTotalCapacity()/1024, 1, 2)} + ' GB'">
                     </li>
                 </ul>
             </div>
         </div>
-        <!-- Center File Manager -->
-        <div class="col-lg-7">
-            <div>
-                <table class="table">
-                    <thead class="thead-dark">
-                    <tr>
-                        <th>文件</th>
-                        <th>大小</th>
-                        <th>类型</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="file : ${fileListMap}">
-                        <td th:text="${file.get('fileName')}">
-                        </td>
-                        <td th:text="${file.get('fileSize')}"></td>
-                        <td th:text="${file.get('isDir')}"></td>
-                    </tr>
-                    </tbody>
-                </table>
+        <!-- Right File Manager -->
+        <div class="col-7">
+            <div class="card">
+                <div class="card-body">
+                    <!-- File list -->
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-9">
+                                        <!-- Path breadcrumb -->
+                                        <nav aria-label="breadcrumb">
+                                            <ol class="breadcrumb" th:each="path : ${pathList}">
+                                                <li class="breadcrumb-item">
+                                                    <a href="#" th:text="${path} + '>'"></a>
+                                                </li>
+                                            </ol>
+                                        </nav>
+                                    </div>
+                                    <div class="col-3">
+                                        <!-- Button trigger for mkdirModal -->
+                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#mkdirModal">新建文件夹</button>
+                                        <!-- Button trigger for uploadModal -->
+                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">上传</button>
+
+                                        <!-- Upload Modal -->
+                                        <div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">上传文件</h5>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <form id="upload" th:action="@{/file/upload}" th:method="post" enctype="multipart/form-data">
+                                                            <input type="file" name="file" value="选择文件">
+                                                            <button type="submit" class="btn btn-primary">上传</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Mkdir modal -->
+                                        <div class="modal fade" id="mkdirModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">新建文件夹</h5>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <form id="mkdir" th:action="@{/file/mkdir}" th:method="post" enctype="multipart/form-data">
+                                                            <label>
+                                                                <input type="text" name="directory">
+                                                            </label>
+                                                            <button type="submit" class="btn btn-primary">确定</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-8"><p>文件名</p></div>
+                            <div class="col-2"><p>文件大小</p></div>
+                            <div class="col-2"><p>最后修改时间</p></div>
+                        </div>
+                        <div class="row" th:each="hadoopFile : ${hadoopFileList}">
+                            <div class="col-8">
+                                <p th:text="${hadoopFile.get('fileName')}"></p>
+                            </div>
+                            <div class="col-2">
+                                <p th:if="${hadoopFile.get('isDir') == true}">-</p>
+                                <p th:if="${hadoopFile.get('isDir') == false}"
+                                   th:text="${#numbers.formatDecimal(hadoopFile.get('fileSize')/1048576.0, 1, 2) + ' MB'}">
+                                </p>
+                            </div>
+                            <div class="col-2">
+                                <p th:text="${hadoopFile.get('lastModifiedDate')}"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <!-- Right Shared files -->
-        <div class="col-lg-3">
-            <div>
-                <form id="upload" th:action="@{/file/upload}" th:method="post" enctype="multipart/form-data">
-                    <input type="file" value="选择文件">
-                    <button type="submit" class="btn btn-primary">上传</button>
-                </form>
+        <div class="col-3">
+            <div class="card">
+                <div class="card-header">热门分享文件</div>
+                <div class="card-body">
+                    <ul>
+                        <li>文件</li>
+                        <li>文件</li>
+                        <li>文件</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card" style="margin-top: 16px">
+                <div class="card-header">最近共享文件</div>
+                <div class="card-body">
+                    <ul>
+                        <li>文件</li>
+                        <li>文件</li>
+                        <li>文件</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -109,13 +198,6 @@
 <p class="hide text-hide" th:text="${user.getUsedCapacity()}" id="used"></p>
 <p class="hide text-hide" th:text="${user.getTotalCapacity()}" id="total"></p>
 
-<script>
-    $().ready(function () {
-        var percentage = Math.round(parseInt($("#used").text()) / parseInt($("#total").text()) * 100);
-        $("#capacity").attr("aria-valuenow", percentage);
-        $("#capacity").attr("style", "width:" + percentage + "%");
-    })
-</script>
-
+<script type="text/javascript" th:src="@{../static/js/main.js}"></script>
 </body>
 </html>

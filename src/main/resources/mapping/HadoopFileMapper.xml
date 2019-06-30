@@ -3,13 +3,11 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 
-<mapper namespace="org.jetbrains.hadoop_netdisk.mapper.MyFileMapper">
+<mapper namespace="org.jetbrains.hadoop_netdisk.mapper.HadoopFileMapper">
 
-    <resultMap id="FileResultMap" type="org.jetbrains.hadoop_netdisk.model.MyFile">
-        <result column="owner" jdbcType="VARCHAR" property="owner" />
-        <result column="file_md5hashcode" jdbcType="CHAR" property="fileMD5HashCode" />
-        <result column="full_name" jdbcType="VARCHAR" property="fullName" />
-        <result column="file_name" jdbcType="VARCHAR" property="fileName" />
+    <resultMap id="FileResultMap" type="org.jetbrains.hadoop_netdisk.entity.HadoopFile">
+        <result column="hash_code" jdbcType="CHAR" property="hashCode" />
+        <result column="hdfs_path" jdbcType="VARCHAR" property="hdfsPath" />
         <result column="file_size" jdbcType="DOUBLE" property="fileSize" />
         <result column="upload_date" jdbcType="DATE" property="uploadDate" />
         <result column="is_deleted" jdbcType="BOOLEAN" property="isDeleted" />
@@ -20,20 +18,21 @@
         <result column="share_encrypt" jdbcType="BOOLEAN" property="shareEncrypt" />
         <result column="share_encrypt_code" jdbcType="VARCHAR" property="shareEncryptCode" />
         <result column="download_count" jdbcType="INTEGER" property="downloadCount" />
+        <result column="owner" jdbcType="VARCHAR" property="owner" />
     </resultMap>
 
-    <!-- 通过fileMD5HashCode获取文件 -->
-    <select id="getDetailByFileMD5HashCode" resultMap="FileResultMap">
+    <!-- 获取文件详细信息 -->
+    <select id="getDetail" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
-        WHERE file_md5hashcode = #{fileMD5HashCode}
+        WHERE hash_code = #{hashCode}
     </select>
 
-    <!-- 通过fullName获取文件 -->
-    <select id="getDetailByFullName" resultMap="FileResultMap">
+    <!-- 获取用户文件列表 -->
+    <select id="getUserFiles" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
-        WHERE full_name = #{fullName}
+        WHERE owner = #{username}
     </select>
 
     <!-- 获取分享文件列表 -->
@@ -63,14 +62,14 @@
     <select id="searchFiles" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
-        WHERE owner = #{username} AND file_name LIKE concat('%', #{query}, '%')
+        WHERE owner = #{username} AND hdfs_path LIKE concat('%', #{query}, '%')
     </select>
 
     <!-- 搜索已分享文件 -->
     <select id="searchSharedFiles" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
-        WHERE is_shared = TRUE AND file_name LIKE concat('%', #{query}, '%')
+        WHERE is_shared = TRUE AND hdfs_path LIKE concat('%', #{query}, '%')
     </select>
 
     <!-- 获取某个用户分享的文件列表 -->
@@ -98,43 +97,51 @@
     <update id="increaseDownloadCount">
         UPDATE hadoop.files
         SET download_count = download_count + 1
-        WHERE full_name = #{fileMD5HashCode}
+        WHERE hash_code = #{hashCode}
     </update>
 
     <!-- 插入 -->
     <insert id="insert">
-        INSERT INTO hadoop.files(owner, file_md5hashcode, full_name, file_name, file_size)
-        VALUES (#{owner}, #{fileMD5HashCode}, #{fullName}, #{fileName}, #{fileSize})
+        INSERT INTO hadoop.files(hash_code, hdfs_path, file_size, owner)
+        VALUES (#{hashCode}, #{hdfsPath}, #{fileSize}, #{owner})
     </insert>
 
     <!-- 重命名 -->
     <update id="rename">
         UPDATE hadoop.files
-        SET full_name = #{full_name},
-            file_size = #{file_name}
-        WHERE file_md5hashcode = #{fileMD5HashCode}
+        SET hdfs_path = #{newHdfsPath}
+        WHERE hash_code = #{hashCode}
     </update>
 
-    <!-- 删除 -->
-    <update id="delete">
+    <!-- 将文件标记为删除 -->
+    <update id="fakeDelete">
         UPDATE hadoop.files
-        SET is_deleted = TRUE,
+        SET hdfs_path = #{newHdfsPath},
+            is_deleted = TRUE,
             delete_date = now()
-        WHERE file_md5hashcode = #{fileMD5HashCode}
+        WHERE hash_code = #{hashCode}
     </update>
+
+    <!-- 删除文件记录 -->
+    <delete id="realDelete">
+        DELETE FROM hadoop.files
+        WHERE hash_code = #{hashCode}
+    </delete>
 
     <!-- 分享 -->
     <update id="share">
         UPDATE hadoop.files
         <set>
-            <if test="1 == 1">is_shared = TRUE,</if>
-            <if test="1 == 1">share_date = now(),</if>
-            <if test="1 == 1">share_expire_date = date_add(now(), INTERVAL #{shareExpireDay} DAY),</if>
+            <if test="1 == 1">
+                is_shared = TRUE,
+                share_date = now(),
+                share_expire_date = date_add(now(), INTERVAL #{shareExpireDay} DAY),
+            </if>
             <if test="shareEncrypt == true">
                 share_encrypt = TRUE,
                 share_encrypt_code = #{shareEncryptCode}
             </if>
         </set>
-        WHERE file_md5hashcode = #{fileMD5HashCode}
+        WHERE hash_code = #{hashCode}
     </update>
 </mapper>

@@ -23,7 +23,9 @@ public interface HdfsService {
 
     boolean rename(String srcFile, String desFile);
 
-    boolean delete(String path);
+    boolean fakeDelete(String path);
+
+    boolean realDelete(String path);
 
     List<Map<String, Object>> listFiles(String path, PathFilter pathFilter);
 
