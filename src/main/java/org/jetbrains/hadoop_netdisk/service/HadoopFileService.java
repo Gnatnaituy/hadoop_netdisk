@@ -29,7 +29,7 @@ public interface HadoopFileService {
 
     int share(boolean shareEncrypt, String shareEncryptCode, String hashCode);
 
-    int upload(String currentUser, MultipartFile multipartFile);
+    int upload(String currentPath, MultipartFile multipartFile);
 
     int download(String hashCode);
 

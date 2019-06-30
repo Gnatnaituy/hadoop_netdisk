@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.MessageFormat;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -32,7 +30,7 @@ public class HadoopUserController {
     private final HadoopFileService hadoopFileService;
     
     private final String CURRENT_USER = "currentUser";
-    private final String CURRENT_DIR = "currentDir";
+    private final String CURRENT_PATH = "currentPath";
     private final String MSG = "msg";
 
     private Logger logger = LoggerFactory.getLogger(HadoopUserController.class);
@@ -50,18 +48,24 @@ public class HadoopUserController {
     @GetMapping("/main")
     public String main(Model model, HttpServletRequest request) {
         HadoopUser currentUser = hadoopUserService.getCurrentUser(request);
-        logger.info(MessageFormat.format("Current hadoopUser --> {0}", currentUser.getUsername()));
-        String currentDir = hadoopFileService.getCurrentDir(request);
-        List<String> pathList = Arrays.asList(currentDir.split("/"));
+        String currentPath = hadoopFileService.getCurrentDir(request);
 
-        List<Map<String, Object>> hadoopFileList = hdfsService.listFiles(currentDir, null);
+        List<String[]> paths = new ArrayList<>();
+        StringBuilder absPath = new StringBuilder();
+
+        for (String path : currentPath.split("/")) {
+            absPath.append(path).append("/");
+            paths.add(new String[]{path, absPath.toString()});
+        }
+
+        List<Map<String, Object>> hadoopFileList = hdfsService.listFiles(currentPath, null);
         List<HadoopFile> mySqlFileList = hadoopFileService.getUserFiles(currentUser.getUsername());
         List<HadoopFile> sharedFileList = hadoopFileService.getSharedFiles();
 
         // Add hadoopUser information
         model.addAttribute("user", currentUser);
-        model.addAttribute("currentDir", currentDir);
-        model.addAttribute("pathList", pathList);
+        model.addAttribute(CURRENT_PATH, currentPath);
+        model.addAttribute("paths", paths);
         // Add file information
         model.addAttribute("hadoopFileList", hadoopFileList);
         model.addAttribute("mySqlFileList", mySqlFileList);
@@ -111,7 +115,7 @@ public class HadoopUserController {
 
         model.addAttribute("user", target);
         request.getSession().setAttribute(CURRENT_USER, user.getUsername());
-        request.getSession().setAttribute(CURRENT_DIR, user.getUsername());
+        request.getSession().setAttribute(CURRENT_PATH, user.getUsername() + "/");
 
         return "redirect:/user/main";
     }

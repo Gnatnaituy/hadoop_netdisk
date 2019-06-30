@@ -3,7 +3,6 @@ package org.jetbrains.hadoop_netdisk.util;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -88,7 +87,7 @@ public class FileUtil {
             if (o1.get("isDir") == o2.get("isDir")) {
                 return o1.get("fileName").toString().toLowerCase().compareTo(o2.get("fileName").toString().toLowerCase());
             } else {
-                return -o1.get("isDir").toString().compareTo(o2.get("isDir").toString());
+                return (boolean) o1.get("isDir") ? -1 : 1;
             }
         });
     }
@@ -96,19 +95,19 @@ public class FileUtil {
     public static void sortFileListByLastModifiedDate(List<Map<String, Object>> fileList) {
         fileList.sort((o1, o2) -> {
             if (o1.get("isDir") == o2.get("isDir")) {
-                return -o1.get("lastModifiedDate").toString().compareTo(o2.get("lastModifiedDate").toString());
+                return o2.get("lastModifiedDate").toString().compareTo(o1.get("lastModifiedDate").toString());
             } else {
-                return -o1.get("isDir").toString().compareTo(o2.get("isDir").toString());
+                return (boolean) o1.get("isDir") ? -1 : 1;
             }
         });
     }
 
     public static void sortFileListByFileSize(List<Map<String, Object>> fileList) {
         fileList.sort((o1, o2) -> {
-            if (o1.get("isDir") == o2.get("isDir") && !((boolean) o1.get("isDir"))) {
-                return ((long) o1.get("fileSize")) > ((long) o2.get("fileSize")) ? 1 : -1;
+            if (!(((boolean) o1.get("isDir") && ((boolean) o2.get("isDir"))))) {
+                return Long.compare((long) o1.get("fileSize"), (long) o2.get("fileSize"));
             } else {
-                return -o1.get("isDir").toString().compareTo(o2.get("isDir").toString());
+                return (boolean) o1.get("isDir") ? -1 : 1;
             }
         });
     }

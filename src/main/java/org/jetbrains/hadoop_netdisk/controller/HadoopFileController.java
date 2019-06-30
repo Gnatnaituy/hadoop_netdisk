@@ -21,6 +21,8 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("file")
 public class HadoopFileController {
     private final HadoopFileService hadoopFileService;
+    private final String CURRENT_PATH = "currentPath";
+    private final String CURRENT_USER = "currentUser";
     private Logger logger = LoggerFactory.getLogger(HadoopFileController.class);
 
     public HadoopFileController(HadoopFileService hadoopFileService) {
@@ -42,9 +44,9 @@ public class HadoopFileController {
      */
     @PostMapping("/upload")
     public String upload(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
-        String currentUser = request.getSession().getAttribute("currentUser").toString();
+        String currentPath = request.getSession().getAttribute(CURRENT_PATH).toString();
 
-        hadoopFileService.upload(currentUser, file);
+        hadoopFileService.upload(currentPath, file);
 
         return "redirect:/user/main";
     }
@@ -65,6 +67,16 @@ public class HadoopFileController {
     @PostMapping("/mkdir")
     public String mkdir(@RequestParam String directory, HttpServletRequest request) {
         hadoopFileService.mkdir(hadoopFileService.getCurrentDir(request) + "/" + directory);
+
+        return "redirect:/user/main";
+    }
+
+    /**
+     * Change dir
+     */
+    @GetMapping("/chdir")
+    public String chdir(@RequestParam(value = "desPath") String desPath, HttpServletRequest request) {
+        request.getSession().setAttribute(CURRENT_PATH, desPath);
 
         return "redirect:/user/main";
     }

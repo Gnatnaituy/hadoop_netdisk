@@ -39,7 +39,7 @@ public class HadoopFileServiceImpl implements HadoopFileService {
 
     public String getCurrentDir(HttpServletRequest request) {
 
-        return request.getSession().getAttribute("currentDir").toString();
+        return request.getSession().getAttribute("currentPath").toString();
     }
 
     public HadoopFile query(String hashCode) {
@@ -80,7 +80,8 @@ public class HadoopFileServiceImpl implements HadoopFileService {
         return hadoopFileMapper.share(shareEncrypt, shareEncryptCode, hashCode);
     }
 
-    public int upload(String currentUser, MultipartFile multipartFile) {
+    public int upload(String currentPath, MultipartFile multipartFile) {
+        String currentUser = currentPath.split("/")[0];
         // Convert multipartFile to File
         File localFile = FileUtil.multipartFileToFile(multipartFile);
         logger.info(MessageFormat.format("File path on Tomcat server:   {0}", localFile.getPath()));
@@ -92,7 +93,7 @@ public class HadoopFileServiceImpl implements HadoopFileService {
         logger.info(MessageFormat.format("FileSize:     {0} MB", fileSize));
 
         // Upload localFile to Hadoop and convert file name to hashcode-filename
-        String hdfsPath = hdfsService.upload(localFile, currentUser + "/" + hashCode + "-" + localFile.getName());
+        String hdfsPath = hdfsService.upload(localFile, currentPath + "/" + hashCode + "-" + localFile.getName());
         logger.info(MessageFormat.format("HdfsPath:     {0}", hdfsPath));
 
         // Insert file record to hadoop.files

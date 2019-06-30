@@ -178,7 +178,7 @@ public class HdfsServiceImpl implements HdfsService {
                     for (FileStatus status : statuses) {
                         Map<String, Object> file = new HashMap<>();
                         String lastModifiedDate =
-                                new SimpleDateFormat("MM-dd HH:mm").format(new Date(status.getModificationTime()));
+                                new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date(status.getModificationTime()));
 
                         file.put("hdfsPath", status.getPath());
                         logger.info(MessageFormat.format("hdfsPath: {0}", status.getPath()));
