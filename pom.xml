@@ -70,9 +70,14 @@
             <version>3.4.1</version>
         </dependency>
         <dependency>
-            <groupId>net.sourceforge.nekohtml</groupId>
-            <artifactId>nekohtml</artifactId>
-            <version>1.9.22</version>
+            <groupId>org.webjars</groupId>
+            <artifactId>font-awesome</artifactId>
+            <version>5.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.bowergithub.primer</groupId>
+            <artifactId>octicons</artifactId>
+            <version>7.3.0</version>
         </dependency>
 
         <dependency>

@@ -62,11 +62,9 @@ public class HadoopUserController {
         List<HadoopFile> mySqlFileList = hadoopFileService.getUserFiles(currentUser.getUsername());
         List<HadoopFile> sharedFileList = hadoopFileService.getSharedFiles();
 
-        // Add hadoopUser information
         model.addAttribute("user", currentUser);
         model.addAttribute(CURRENT_PATH, currentPath);
         model.addAttribute("paths", paths);
-        // Add file information
         model.addAttribute("hadoopFileList", hadoopFileList);
         model.addAttribute("mySqlFileList", mySqlFileList);
         model.addAttribute("sharedFileList", sharedFileList);

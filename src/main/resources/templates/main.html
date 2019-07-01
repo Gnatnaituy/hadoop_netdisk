@@ -4,13 +4,17 @@
 <head>
     <title th:text="${user.getUsername() + '的网盘'}"></title>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.3.1/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/webjars/font-awesome/5.9.0/css/fontawesome.css}" />
+    <link rel="stylesheet" th:href="@{../static/css/main.css}" />
     <script type="text/javascript" th:src="@{../static/js/popper.min.js}"></script>
     <script type="text/javascript" th:src="@{/webjars/jquery/3.4.1/jquery.min.js}"></script>
     <script type="text/javascript" th:src="@{/webjars/bootstrap/4.3.1/js/bootstrap.min.js}"></script>
 </head>
 
-<body>
+<body style="font-size: 14px">
 
+
+<!-- Navigation bar -->
 <div>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark" role="navigation">
         <div class="container-fluid">
@@ -36,7 +40,8 @@
     </nav>
 </div>
 
-<div class="container-fluid" style="margin-top: 20px">
+
+<div class="container-fluid" style="margin-top: 20px;">
     <div class="row">
         <!-- Left Information about the user -->
         <div class="col-2">
@@ -48,7 +53,7 @@
                 </div>
             </div>
             <div class="card" style="margin-top: 16px">
-                <div class="card-header">容量使用情况</div>
+                <div class="card-header font-weight-bold">容量使用情况</div>
                 <div class="card-body">
                     <div class="progress">
                         <div id="capacity" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100">
@@ -74,122 +79,189 @@
                 </ul>
             </div>
         </div>
-        <!-- Right File Manager -->
-        <div class="col-10">
-            <div class="card">
-                <div class="card-body">
-                    <!-- File list -->
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="container-fluid">
-                                <div class="row">
-                                    <div class="col-9">
-                                        <!-- Path breadcrumb -->
-                                        <nav aria-label="breadcrumb">
-                                            <ol class="breadcrumb">
-                                                <li class="breadcrumb-item" th:each="path : ${paths}">
-                                                    <a th:href="@{/file/chdir(desPath=${path[1]})}" th:text="${path[0]}"></a>
-                                                </li>
-                                            </ol>
-                                        </nav>
-                                    </div>
-                                    <div class="col-3">
-                                        <!-- Button trigger for mkdirModal -->
-                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#mkdirModal">新建文件夹</button>
-                                        <!-- Button trigger for uploadModal -->
-                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">上传</button>
-                                        <!-- Button trigger for searchModal -->
-                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#searchModal">搜索</button>
 
-                                        <!-- Upload Modal -->
-                                        <div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">上传文件</h5>
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <form id="upload" th:action="@{/file/upload}" th:method="post" enctype="multipart/form-data">
-                                                            <input type="file" name="file" value="选择文件">
-                                                            <button type="submit" class="btn btn-primary">上传</button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
+        <!-- Center File Manager -->
+        <div class="col-7">
+            <!-- file manage nav bar -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item font-weight-bold" style="padding-left: 6px">当前路径: </li>
+                    <li class="breadcrumb-item" th:each="path : ${paths}">
+                        <a th:href="@{/file/chdir(desPath=${path[1]})}" th:text="${path[0]}"></a>
+                    </li>
+                </ol>
+            </nav>
+            <div class="accordion" id="hadoopFileListAccordion">
+                <div class="card">
+                    <div class="card-header" id="myNetDiskHeader">
+                        <div class="container" style="padding-left: 0; padding-right: 0">
+                            <div class="row">
+                                <div class="col-6">
+                                    <p class="font-weight-bold" style="font-size: 16px; margin: 0">我的网盘</p>
+                                </div>
+                                <div class="col-6">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="myNetDiskBody" class="collapse" aria-labelledby="myNetDiskHeader"
+                         data-parent="#hadoopFileListAccordion">
+                        <div class="card-body">
+                            <!-- Button trigger for mkdirModal -->
+                            <button type="button" class="btn btn-primary" style="font-size: 14px"
+                                    data-toggle="modal"
+                                    data-target="#mkdirModal">新建</button>
+                            <!-- Button trigger for uploadModal -->
+                            <button type="button" class="btn btn-primary" style="font-size: 14px"
+                                    data-toggle="modal"
+                                    data-target="#uploadModal">上传</button>
+                            <!-- Button trigger for searchModal -->
+                            <button type="button" class="btn btn-primary" style="font-size: 14px"
+                                    data-toggle="modal"
+                                    data-target="#searchModal">搜索</button>
+
+                            <!-- Upload Modal -->
+                            <div class="modal fade" id="uploadModal" tabindex="-1" role="dialog"
+                                 aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">上传文件</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
                                         </div>
-                                        <!-- Mkdir modal -->
-                                        <div class="modal fade" id="mkdirModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">新建文件夹</h5>
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <form id="mkdir" th:action="@{/file/mkdir}" th:method="post">
-                                                            <label>
-                                                                <input type="text" name="directory">
-                                                            </label>
-                                                            <button type="submit" class="btn btn-primary">确定</button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                        <div class="modal-body">
+                                            <form id="upload" th:action="@{/file/upload}" th:method="post" enctype="multipart/form-data">
+                                                <input type="file" name="file" value="选择文件">
+                                                <button type="submit" class="btn btn-primary">上传</button>
+                                            </form>
                                         </div>
-                                        <!-- Search modal -->
-                                        <div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">搜索</h5>
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <form id="search" th:action="@{/file/search}" th:method="post">
-                                                            <label>
-                                                                <input type="text" name="query">
-                                                            </label>
-                                                            <button type="submit" class="btn btn-primary">搜索</button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Mkdir modal -->
+                            <div class="modal fade" id="mkdirModal" tabindex="-1" role="dialog"
+                                 aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">新建文件夹</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form id="mkdir" th:action="@{/file/mkdir}" th:method="post">
+                                                <label>
+                                                    <input type="text" name="directory">
+                                                </label>
+                                                <button type="submit" class="btn btn-primary">确定</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Search modal -->
+                            <div class="modal fade" id="searchModal" tabindex="-1" role="dialog"
+                                 aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">搜索</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form id="search" th:action="@{/file/search}" th:method="post">
+                                                <label>
+                                                    <input type="text" name="query">
+                                                </label>
+                                                <button type="submit" class="btn btn-primary">搜索</button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-8"><p>文件名</p></div>
-                            <div class="col-2"><p>文件大小</p></div>
-                            <div class="col-2"><p>最后修改时间</p></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header-pills">
+                        <div class="container bg-light">
+                            <div class="row">
+                                <div class="col-8 text-secondary" style="padding-left: 30px;">文件名称</div>
+                                <div class="col-2 text-secondary">文件大小</div>
+                                <div class="col-2 text-secondary">上传日期</div>
+                            </div>
                         </div>
-                        <div class="row" th:each="hadoopFile : ${hadoopFileList}">
-                            <div class="col-8">
-                                <a th:if="${hadoopFile.get('isDir') == true}"
-                                   th:text="${hadoopFile.get('fileName')}"
-                                   th:href="@{/file/chdir(desPath=${currentPath + hadoopFile.get('fileName') + '/'})}">
-                                </a>
-                                <a th:if="${hadoopFile.get('isDir') == false}"
-                                   th:text="${hadoopFile.get('fileName')}">
-                                </a>
+                    </div>
+                </div>
+                <div class="card" th:each="hadoopFile : ${hadoopFileList}">
+                    <div class="card-header" style="background-color: white" th:id="${'b' + hadoopFile.get('id1')}">
+                        <div class="container" style="padding-left: 0; padding-right: 0">
+                            <div class="row" data-toggle="collapse" aria-expanded="true"
+                                 th:href="'#' + ${'b' + hadoopFile.get('id2')}"
+                                 th:aria-controls="${'b' + hadoopFile.get('id2')}">
+                                <div class="col-8">
+                                    <a th:if="${hadoopFile.get('isDir') == true}" class="font-weight-normal" style="margin: 0;"
+                                       th:href="@{/file/chdir(desPath=${currentPath + hadoopFile.get('fileName') + '/'})}"
+                                       th:text="${hadoopFile.get('fileName')}">
+                                    </a>
+                                    <a th:if="${hadoopFile.get('isDir') == false}" class="font-weight-normal text-primary" style="margin: 0"
+                                        th:text="${hadoopFile.get('fileName')}">
+                                    </a>
+                                </div>
+                                <div class="col-2">
+                                    <p style="margin: 0;" th:if="${hadoopFile.get('isDir') == true}">-</p>
+                                    <p style="margin: 0;" th:if="${hadoopFile.get('isDir') == false}"
+                                       th:text="${#numbers.formatDecimal(hadoopFile.get('fileSize')/1048576.0, 1, 2)} + ' MB'">
+                                    </p>
+                                </div>
+                                <div class="col-2">
+                                    <p style="margin: 0;" th:text="${hadoopFile.get('lastModifiedDate')}"></p>
+                                </div>
                             </div>
-                            <div class="col-2">
-                                <p th:if="${hadoopFile.get('isDir') == true}">-</p>
-                                <p th:if="${hadoopFile.get('isDir') == false}"
-                                   th:text="${#numbers.formatDecimal(hadoopFile.get('fileSize')/1048576.0, 1, 2) + ' MB'}">
-                                </p>
-                            </div>
-                            <div class="col-2">
-                                <p th:text="${hadoopFile.get('lastModifiedDate')}"></p>
-                            </div>
+                        </div>
+                    </div>
+                    <div th:id="${'b' + hadoopFile.get('id2')}" class="collapse"
+                         th:aria-labelledby="${'b' + hadoopFile.get('id1')}"
+                         data-parent="#hadoopFileListAccordion">
+                        <div class="card-body">
+                            text
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Shared Files -->
+        <div class="col-3">
+            <div class="accordion" id="shareFileListAccordion">
+                <div class="card">
+                    <div class="card-header font-weight-bold">热门分享文件</div>
+                </div>
+                <div class="card" th:each="sharedFile : ${sharedFileList}">
+                    <div class="card-header" style="background-color: white" th:id="${'a' + sharedFile.getHashCode().substring(5,10)}">
+                        <a class="font-weight-normal" data-toggle="collapse" aria-expanded="true"
+                           th:href="'#' + ${'a' + sharedFile.getHashCode().substring(0,5)}"
+                           th:aria-controls="${'a' + sharedFile.getHashCode().substring(0,5)}"
+                           th:text="${sharedFile.getHdfsPath().substring(sharedFile.getHdfsPath().lastIndexOf('/') + 34)}">
+                        </a>
+                    </div>
+                    <div th:id="${'a' + sharedFile.getHashCode().substring(0,5)}" class="collapse"
+                         th:aria-labelledby="${'a' + sharedFile.getHashCode().substring(5,10)}"
+                         data-parent="#shareFileListAccordion">
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item" th:text="'分享者: ' + ${sharedFile.getOwner()}"></li>
+                                <li class="list-group-item" th:text="'分享日期: ' + ${sharedFile.getShareDate()}"></li>
+                                <li class="list-group-item" th:text="'文件大小: '
+                                    + ${#numbers.formatDecimal(sharedFile.getFileSize(), 1, 2)} + ' MB'"></li>
+                                <li class="list-group-item" th:text="'下载次数: ' + ${sharedFile.getDownloadCount()}"></li>
+                            </ul>
                         </div>
                     </div>
                 </div>

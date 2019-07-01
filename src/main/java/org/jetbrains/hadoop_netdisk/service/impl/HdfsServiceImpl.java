@@ -178,7 +178,7 @@ public class HdfsServiceImpl implements HdfsService {
                     for (FileStatus status : statuses) {
                         Map<String, Object> file = new HashMap<>();
                         String lastModifiedDate =
-                                new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date(status.getModificationTime()));
+                                new SimpleDateFormat("MM-dd HH:mm").format(new Date(status.getModificationTime()));
 
                         file.put("hdfsPath", status.getPath());
                         logger.info(MessageFormat.format("hdfsPath: {0}", status.getPath()));
@@ -187,8 +187,12 @@ public class HdfsServiceImpl implements HdfsService {
 
                         if (status.isDirectory()) {
                             file.put("fileName", status.getPath().getName());
+                            file.put("id1", "as" + status.getPath().getName());
+                            file.put("id2", "sa" + status.getPath().getName());
                         } else {
                             file.put("hashCode", status.getPath().getName().substring(0, 32));
+                            file.put("id1", status.getPath().getName().substring(0, 5));
+                            file.put("id2", status.getPath().getName().substring(5, 10));
                             file.put("fileName", status.getPath().getName().substring(33));
                             file.put("fileSize", status.getLen());
                         }
