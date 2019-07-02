@@ -16,7 +16,7 @@ public class HadoopFile {
     private Date deleteDate;
     private boolean isShared;
     private Date shareDate;
-    private int shareExpireTime;
+    private Date shareExpireDate;
     private boolean shareEncrypt;
     private String shareEncryptCode;
     private int downloadCount;
@@ -93,12 +93,12 @@ public class HadoopFile {
         this.shareDate = shareDate;
     }
 
-    public int getShareExpireTime() {
-        return shareExpireTime;
+    public Date getShareExpireDate() {
+        return shareExpireDate;
     }
 
-    public void setShareExpireTime(int shareExpireTime) {
-        this.shareExpireTime = shareExpireTime;
+    public void setShareExpireDate(Date shareExpireDate) {
+        this.shareExpireDate = shareExpireDate;
     }
 
     public boolean isShareEncrypt() {

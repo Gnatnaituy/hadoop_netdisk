@@ -21,13 +21,17 @@ public interface HadoopFileService {
 
     int insert(HadoopFile hadoopFile);
 
-    int fakeDelete(String hashCode);
+    int fakeDelete(String hashCode, String username);
+
+    int fakeDeleteDir(String currentPath, String username);
+
+    int cancelFakeDelete(String hashCode, String username);
 
     int realDelete(String hashCode);
 
     int rename(String oldHdfsPath, String newFileName, boolean isDir, String hashCode);
 
-    int share(boolean shareEncrypt, String shareEncryptCode, String hashCode);
+    int share(String shareExpireDay, String shareEncryptCode, String hashCode);
 
     int upload(String currentPath, MultipartFile multipartFile);
 
@@ -40,6 +44,8 @@ public interface HadoopFileService {
     int increaseDownloadCount(String hashCode);
 
     List<HadoopFile> getUserFiles(String username);
+
+    List<HadoopFile> getUserDeletedFiles(String username);
 
     List<HadoopFile> getSharedFiles();
 

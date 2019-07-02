@@ -54,9 +54,9 @@ public class HadoopFileController {
     /**
      * Download file from Hadoop to Local directly
      */
-    @GetMapping("/download")
-    public String download(@RequestParam String filename) {
-        hadoopFileService.download(filename);
+    @PostMapping("/download")
+    public String download(@RequestParam String hashCode) {
+        hadoopFileService.download(hashCode);
 
         return "redirect:/user/main";
     }
@@ -96,9 +96,9 @@ public class HadoopFileController {
      * Share file
      */
     @PostMapping("/share")
-    public String share(@RequestParam boolean shareEncrypt, @RequestParam String shareEncryptCode,
+    public String share(@RequestParam String shareExpireDay, @RequestParam String shareEncryptCode,
                         @RequestParam String hashCode) {
-        hadoopFileService.share(shareEncrypt, shareEncryptCode, hashCode);
+        hadoopFileService.share(shareExpireDay, shareEncryptCode, hashCode);
 
         return "redirect:/user/main";
     }
@@ -107,8 +107,28 @@ public class HadoopFileController {
      * Mark file deleted
      */
     @PostMapping("/markDeleted")
-    public String markDeleted(@RequestParam String hashCode) {
-        hadoopFileService.fakeDelete(hashCode);
+    public String markDeleted(@RequestParam String hashCode, HttpServletRequest request) {
+        hadoopFileService.fakeDelete(hashCode, request.getSession().getAttribute(CURRENT_USER).toString());
+
+        return "redirect:/user/main";
+    }
+
+    /**
+     * Mark directory deleted
+     */
+    @PostMapping("/markDirDeleted")
+    public String markDirDeleted(@RequestParam String hdfsPath, HttpServletRequest request) {
+        hadoopFileService.fakeDeleteDir(hdfsPath, request.getSession().getAttribute(CURRENT_USER).toString());
+
+        return "redirect:/user/main";
+    }
+
+    /**
+     * Restore delete file
+     */
+    @PostMapping("/restore")
+    public String restore(@RequestParam String hashCode, HttpServletRequest request) {
+        hadoopFileService.cancelFakeDelete(hashCode, request.getSession().getAttribute(CURRENT_USER).toString());
 
         return "redirect:/user/main";
     }
@@ -116,9 +136,22 @@ public class HadoopFileController {
     /**
      * Real delete file
      */
-    @PostMapping("/delete")
-    public String delete(@RequestParam String hashCode) {
+    @PostMapping("/realDelete")
+    public String realDelete(@RequestParam String hashCode) {
         hadoopFileService.realDelete(hashCode);
+
+        return "redirect:/user/main";
+    }
+
+    /**
+     * Real delete all deleted files
+     */
+    @PostMapping("/emptyTrash")
+    public String emptyTrash(HttpServletRequest request) {
+        String currentUser = request.getSession().getAttribute(CURRENT_USER).toString();
+        for (HadoopFile deletedFile : hadoopFileService.getUserDeletedFiles(currentUser)) {
+            hadoopFileService.realDelete(deletedFile.getHashCode());
+        }
 
         return "redirect:/user/main";
     }

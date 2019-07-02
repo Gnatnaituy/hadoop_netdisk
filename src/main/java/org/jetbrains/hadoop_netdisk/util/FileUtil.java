@@ -76,7 +76,7 @@ public class FileUtil {
 
     public static String exceptFileName(String hdfsPath, boolean isDir) {
         if (isDir) {
-            return hdfsPath.substring(0, hdfsPath.lastIndexOf('/') + 2);
+            return hdfsPath.substring(0, hdfsPath.lastIndexOf('/') + 1);
         } else {
             return hdfsPath.substring(0, hdfsPath.lastIndexOf('/') + HASHCODE_LENGTH + 2);
         }

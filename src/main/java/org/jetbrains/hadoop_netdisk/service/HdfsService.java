@@ -17,6 +17,8 @@ import java.util.Map;
 public interface HdfsService {
     boolean mkdir(String path);
 
+    boolean isDir(String path);
+
     String upload(File srcFile, String desFile);
 
     void download(String srcFile, String desFile);
@@ -24,6 +26,8 @@ public interface HdfsService {
     boolean rename(String srcFile, String desFile);
 
     boolean fakeDelete(String path);
+
+    boolean cancelFakeDelete(String path);
 
     boolean realDelete(String path);
 

@@ -9,7 +9,7 @@ $(document).ready(function () {
     })
 });
 
-// 新建文件夹 和 搜索
+// 新建文件夹 搜索
 $(document).ready(function () {
     $("#mkdirForm").hide();
     $("#searchForm").hide();
@@ -40,7 +40,7 @@ $(document).ready(function () {
                 $("#searchForm").submit();
             }
         }
-    })
+    });
 });
 
 // 阻止点击文件夹名称的冒泡事件

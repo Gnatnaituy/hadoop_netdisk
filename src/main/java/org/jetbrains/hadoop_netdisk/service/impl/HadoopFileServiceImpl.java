@@ -59,15 +59,52 @@ public class HadoopFileServiceImpl implements HadoopFileService {
         return hadoopFileMapper.rename(newHdfsPath, hashCode);
     }
 
-    public int fakeDelete(String hashCode) {
-        hdfsService.fakeDelete(FileUtil.getRelativePath(query(hashCode).getHdfsPath()));
-        String newHdfsPath = query(hashCode).getHdfsPath() + "-deleted";
+    public int fakeDelete(String hashCode, String username) {
+        HadoopFile file = query(hashCode);
+        HadoopUser user = hadoopUserService.query(username);
+
+        hdfsService.fakeDelete(FileUtil.getRelativePath(file.getHdfsPath()));
+        String newHdfsPath = file.getHdfsPath() + "-deleted";
+
+        user.setUsedCapacity(user.getUsedCapacity() - file.getFileSize());
+        hadoopUserService.updateUsedCapacity(user);
 
         return hadoopFileMapper.fakeDelete(newHdfsPath, hashCode);
     }
 
+    public int fakeDeleteDir(String hdfsPath, String username) {
+        List<HadoopFile> files = hadoopFileMapper.getFilesUnderDir(hdfsPath);
+        HadoopUser user = hadoopUserService.query(username);
+
+        for (HadoopFile file : files) {
+            if (!file.getHdfsPath().endsWith("-deleted")) {
+                hadoopFileMapper.fakeDelete(file.getHdfsPath() + "-deleted", file.getHashCode());
+                user.setUsedCapacity(user.getUsedCapacity() - file.getFileSize());
+            }
+        }
+
+        hadoopUserService.updateUsedCapacity(user);
+        hdfsService.fakeDelete(FileUtil.getRelativePath(hdfsPath));
+
+        return 0;
+    }
+
+    public int cancelFakeDelete(String hashCode, String username) {
+        HadoopFile file = query(hashCode);
+        HadoopUser user = hadoopUserService.query(username);
+
+        hdfsService.cancelFakeDelete(FileUtil.getRelativePath(file.getHdfsPath()));
+        String newHdfsPath = file.getHdfsPath().substring(0, file.getHdfsPath().length() - 8);
+
+        user.setUsedCapacity(user.getUsedCapacity() + file.getFileSize());
+        hadoopUserService.updateUsedCapacity(user);
+
+        return hadoopFileMapper.cancelFakeDelete(newHdfsPath, hashCode);
+    }
+
     public int realDelete(String hashCode) {
-        hdfsService.realDelete(FileUtil.getRelativePath(query(hashCode).getHdfsPath()));
+        String relativePath = FileUtil.getRelativePath(query(hashCode).getHdfsPath());
+        hdfsService.realDelete(relativePath);
 
         return hadoopFileMapper.realDelete(hashCode);
     }
@@ -76,8 +113,14 @@ public class HadoopFileServiceImpl implements HadoopFileService {
         return hadoopFileMapper.insert(hadoopFile);
     }
 
-    public int share(boolean shareEncrypt, String shareEncryptCode, String hashCode) {
-        return hadoopFileMapper.share(shareEncrypt, shareEncryptCode, hashCode);
+    public int share(String shareExpireDay, String shareEncryptCode, String hashCode) {
+        boolean shareEncrypt = !"".equals(shareEncryptCode);
+
+        if (shareEncrypt) {
+            return hadoopFileMapper.shareWithEncrypt(Integer.valueOf(shareExpireDay), shareEncryptCode, hashCode);
+        } else {
+            return hadoopFileMapper.share(Integer.valueOf(shareExpireDay), hashCode);
+        }
     }
 
     public int upload(String currentPath, MultipartFile multipartFile) {
@@ -133,6 +176,10 @@ public class HadoopFileServiceImpl implements HadoopFileService {
 
     public List<HadoopFile> getUserFiles(String username) {
         return hadoopFileMapper.getUserFiles(username);
+    }
+
+    public List<HadoopFile> getUserDeletedFiles(String username) {
+        return hadoopFileMapper.getUserDeletedFiles(username);
     }
 
     public List<HadoopFile> getSharedFiles() {

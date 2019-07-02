@@ -60,6 +60,7 @@ public class HadoopUserController {
 
         List<Map<String, Object>> hadoopFileList = hdfsService.listFiles(currentPath, null);
         List<HadoopFile> mySqlFileList = hadoopFileService.getUserFiles(currentUser.getUsername());
+        List<HadoopFile> userDeletedFiles = hadoopFileService.getUserDeletedFiles(currentUser.getUsername());
         List<HadoopFile> sharedFileList = hadoopFileService.getSharedFiles();
 
         model.addAttribute("user", currentUser);
@@ -67,6 +68,7 @@ public class HadoopUserController {
         model.addAttribute("paths", paths);
         model.addAttribute("hadoopFileList", hadoopFileList);
         model.addAttribute("mySqlFileList", mySqlFileList);
+        model.addAttribute("userDeletedFiles", userDeletedFiles);
         model.addAttribute("sharedFileList", sharedFileList);
 
         return "main";

@@ -22,7 +22,7 @@
     </resultMap>
 
     <!-- 获取文件详细信息 -->
-    <select id="getDetail" resultMap="FileResultMap">
+    <select id="query" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
         WHERE hash_code = #{hashCode}
@@ -32,21 +32,28 @@
     <select id="getUserFiles" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
-        WHERE owner = #{username}
+        WHERE owner = #{username} AND is_deleted = FALSE
+    </select>
+
+    <!-- 获取用户删除文件列表 -->
+    <select id="getUserDeletedFiles" resultMap="FileResultMap">
+        SELECT *
+        FROM hadoop.files
+        WHERE owner = #{username} AND is_deleted = TRUE
     </select>
 
     <!-- 获取分享文件列表 -->
     <select id="getSharedFiles" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
-        WHERE is_shared = TRUE
+        WHERE is_shared = TRUE AND is_deleted = FALSE
     </select>
 
     <!-- 将分享文件列表按下载次数排序 -->
     <select id="getSharedFilesOrderByDownloadCount" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
-        WHERE is_shared = TRUE
+        WHERE is_shared = TRUE AND is_deleted = FALSE
         ORDER BY #{downloadCount} DESC
     </select>
 
@@ -54,7 +61,7 @@
     <select id="getSharedFilesOrderByShareDate" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
-        WHERE is_shared = TRUE
+        WHERE is_shared = TRUE AND is_deleted = FALSE
         ORDER BY #{sharedDate}
     </select>
 
@@ -62,21 +69,21 @@
     <select id="searchFiles" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
-        WHERE owner = #{username} AND hdfs_path LIKE concat('%', #{query}, '%')
+        WHERE owner = #{username} AND is_deleted = FALSE AND hdfs_path LIKE concat('%', #{query}, '%')
     </select>
 
     <!-- 搜索已分享文件 -->
     <select id="searchSharedFiles" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
-        WHERE is_shared = TRUE AND hdfs_path LIKE concat('%', #{query}, '%')
+        WHERE is_shared = TRUE AND is_deleted = FALSE AND hdfs_path LIKE concat('%', #{query}, '%')
     </select>
 
     <!-- 获取某个用户分享的文件列表 -->
     <select id="getSharedFilesByUsername" resultMap="FileResultMap">
         SELECT *
         FROM hadoop.files
-        WHERE is_shared = TRUE AND owner = #{usernmae}
+        WHERE is_shared = TRUE AND is_deleted = FALSE AND owner = #{usernmae}
     </select>
 
     <!-- 查询某用户分享的文件数 -->
@@ -122,6 +129,21 @@
         WHERE hash_code = #{hashCode}
     </update>
 
+    <!-- 取消删除标记 -->
+    <update id="cancelFakeDelete">
+        UPDATE hadoop.files
+        SET hdfs_path = #{newHdfsPath},
+            is_deleted = FALSE
+        WHERE hash_code = #{hashCode}
+    </update>
+
+    <!-- 选取某个文件夹下的所有文件 -->
+    <select id="getFilesUnderDir" resultMap="FileResultMap">
+        SELECT *
+        FROM hadoop.files
+        WHERE hdfs_path LIKE concat(#{currentPath}, '%')
+    </select>
+
     <!-- 删除文件记录 -->
     <delete id="realDelete">
         DELETE FROM hadoop.files
@@ -131,17 +153,22 @@
     <!-- 分享 -->
     <update id="share">
         UPDATE hadoop.files
-        <set>
-            <if test="1 == 1">
-                is_shared = TRUE,
-                share_date = now(),
-                share_expire_date = date_add(now(), INTERVAL #{shareExpireDay} DAY),
-            </if>
-            <if test="shareEncrypt == true">
-                share_encrypt = TRUE,
-                share_encrypt_code = #{shareEncryptCode}
-            </if>
-        </set>
+        SET
+            is_shared = TRUE,
+            share_date = now(),
+            share_expire_date = date_add(now(), INTERVAL #{shareExpireDay} DAY)
+        WHERE hash_code = #{hashCode}
+    </update>
+
+    <!-- 加密分享 -->
+    <update id="shareWithEncrypt">
+        UPDATE hadoop.files
+        SET
+            is_shared = TRUE,
+            share_date = now(),
+            share_expire_date = date_add(now(), INTERVAL #{shareExpireDay} DAY),
+            share_encrypt = TRUE,
+            share_encrypt_code = #{shareEncryptCode}
         WHERE hash_code = #{hashCode}
     </update>
 </mapper>

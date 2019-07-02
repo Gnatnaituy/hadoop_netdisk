@@ -62,6 +62,26 @@ public class HdfsServiceImpl implements HdfsService {
     }
 
     /**
+     * Judge if path is Directory
+     */
+    public boolean isDir(String path) {
+        if (checkExists(path)) {
+            FileSystem fileSystem = null;
+            try {
+                fileSystem = getFileSystem();
+
+                return fileSystem.isDirectory(new Path(generateHdfsPath(path)));
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                close(fileSystem);
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Upload local file to Hadoop
      * @return hdfsPath file absolute path on Hadoop if success else ""
      */
@@ -126,6 +146,50 @@ public class HdfsServiceImpl implements HdfsService {
     }
 
     /**
+     * Fake delete target on Hadoop
+     */
+    public boolean fakeDelete(String path) {
+        if (checkExists(path)) {
+            if (isDir(path)) {
+                List<String> paths = listPaths(path);
+                for (String childrenPath : paths) {
+                    fakeDelete(childrenPath);
+                }
+            }
+
+            if (!path.endsWith("-deleted")) {
+                String deletedPath = path + "-deleted";
+                rename(path, deletedPath);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Cancel fake delete target on Hadoop
+     */
+    public boolean cancelFakeDelete(String path) {
+        String[] dirs = path.split("/");
+        StringBuilder pathBuilder = new StringBuilder();
+
+        // Restore directory name if the directory is deleted
+        for (int i = 0; i < dirs.length - 1; i++) {
+            pathBuilder.append(dirs[i]);
+            logger.info(MessageFormat.format("当前HDFS路径: {0}", pathBuilder.toString()));
+            if (checkExists(pathBuilder.toString() + "-deleted")) {
+                rename(pathBuilder.toString() + "-deleted", pathBuilder.toString());
+            }
+            pathBuilder.append("/");
+        }
+
+        // Restore file name
+        rename(path, path.substring(0, path.length() - 8));
+
+        return true;
+    }
+
+    /**
      * Delete target on Hadoop
      */
     public boolean realDelete(String path) {
@@ -146,12 +210,31 @@ public class HdfsServiceImpl implements HdfsService {
     }
 
     /**
-     * Fake delete target on Hadoop
+     * List children of path
      */
-    public boolean fakeDelete(String path) {
-        String deletedPath = path + "-deleted";
+    public List<String> listPaths(String path) {
+        List<String> paths = new ArrayList<>();
+        FileSystem fileSystem = null;
 
-        return rename(path, deletedPath);
+        try {
+            fileSystem = getFileSystem();
+            FileStatus[] statuses = fileSystem.listStatus(new Path(generateHdfsPath(path)));
+
+            if (statuses != null) {
+                for (FileStatus status : statuses) {
+                    if (status.getPath().getName().endsWith("-deleted")) {
+                        continue;
+                    }
+                    paths.add(FileUtil.getRelativePath(status.getPath().toString()));
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            close(fileSystem);
+        }
+
+        return paths;
     }
 
     /**
@@ -176,6 +259,10 @@ public class HdfsServiceImpl implements HdfsService {
 
                 if (statuses != null) {
                     for (FileStatus status : statuses) {
+                        if (status.getPath().getName().endsWith("-deleted")) {
+                            continue;
+                        }
+
                         Map<String, Object> file = new HashMap<>();
                         String lastModifiedDate =
                                 new SimpleDateFormat("MM-dd HH:mm").format(new Date(status.getModificationTime()));
@@ -187,13 +274,11 @@ public class HdfsServiceImpl implements HdfsService {
 
                         if (status.isDirectory()) {
                             file.put("fileName", status.getPath().getName());
-                            file.put("id1", "as" + status.getPath().getName());
-                            file.put("id2", "sa" + status.getPath().getName());
+                            file.put("htmlID", status.getPath().getName());
                             file.put("idHref", "href" + status.getPath().getName());
                         } else {
                             file.put("hashCode", status.getPath().getName().substring(0, 32));
-                            file.put("id1", status.getPath().getName().substring(0, 5));
-                            file.put("id2", status.getPath().getName().substring(5, 10));
+                            file.put("htmlID", status.getPath().getName().substring(0, 5));
                             file.put("fileName", status.getPath().getName().substring(33));
                             file.put("fileSize", status.getLen());
                         }

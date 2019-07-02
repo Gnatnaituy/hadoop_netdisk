@@ -18,13 +18,21 @@ public interface HadoopFileMapper {
 
     int rename(String newHdfsPath, String hashCode);
 
-    int share(boolean shareEncrypt, String shareEncryptCode, String hashCode);
+    int share(int shareExpireDay, String hashCode);
+
+    int shareWithEncrypt(int shareExpireDay, String shareEncryptCode, String hashCode);
 
     int fakeDelete(String newHdfsPath, String hashCode);
 
+    int cancelFakeDelete(String newHdfsPath, String hashCode);
+
     int realDelete(String hashCode);
 
+    List<HadoopFile> getFilesUnderDir(String currentPath);
+
     List<HadoopFile> getUserFiles(String username);
+
+    List<HadoopFile> getUserDeletedFiles(String username);
 
     List<HadoopFile> getSharedFiles();
 
