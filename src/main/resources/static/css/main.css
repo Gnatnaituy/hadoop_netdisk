@@ -1,9 +1,9 @@
-body.container-fluid.row.col-3.accordion.card.card-header:hover {
-    cursor: hand;
-    background-color: burlywood;
-}
+.btn:focus,
+.btn:active:focus,
+.btn.active:focus,
+.btn.focus,
+.btn:active.focus,
+.btn.active.focus {
+    box-shadow: none
+}.
 
-body.container-fluid.row.col-7.accordion.card.card-header:hover {
-    cursor: hand;
-    background-color: burlywood;
-}

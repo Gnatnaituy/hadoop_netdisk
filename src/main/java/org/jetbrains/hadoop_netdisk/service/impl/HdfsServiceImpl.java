@@ -189,6 +189,7 @@ public class HdfsServiceImpl implements HdfsService {
                             file.put("fileName", status.getPath().getName());
                             file.put("id1", "as" + status.getPath().getName());
                             file.put("id2", "sa" + status.getPath().getName());
+                            file.put("idHref", "href" + status.getPath().getName());
                         } else {
                             file.put("hashCode", status.getPath().getName().substring(0, 32));
                             file.put("id1", status.getPath().getName().substring(0, 5));
