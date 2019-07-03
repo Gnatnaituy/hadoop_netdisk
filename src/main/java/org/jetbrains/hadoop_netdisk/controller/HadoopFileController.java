@@ -1,16 +1,16 @@
 package org.jetbrains.hadoop_netdisk.controller;
 
 import org.jetbrains.hadoop_netdisk.entity.HadoopFile;
-import org.jetbrains.hadoop_netdisk.entity.HadoopUser;
 import org.jetbrains.hadoop_netdisk.service.HadoopFileService;
-import org.jetbrains.hadoop_netdisk.service.HadoopUserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * @auther hasaker
@@ -37,6 +37,24 @@ public class HadoopFileController {
         HadoopFile hadoopFile = hadoopFileService.query(hashCode);
 
         return hadoopFile == null ? "hadoopFile not found": hadoopFile.toString();
+    }
+
+    /**
+     * Search file by given keyword
+     */
+    @GetMapping("/search")
+    public String search(@RequestParam String query, @RequestParam String isSearchShared, Model model) {
+        List<HadoopFile> searchResults;
+
+        if ("true".equals(isSearchShared)) {
+            searchResults = hadoopFileService.searchSharedFiles(query);
+            model.addAttribute("sharedFileList", searchResults);
+        } else {
+            searchResults = hadoopFileService.searchFiles(query);
+            model.addAttribute("mySqlFileList", searchResults);
+        }
+
+        return "true".equals(isSearchShared) ? "main::share_refresh" : "main::search_refresh";
     }
 
     /**
@@ -146,7 +164,7 @@ public class HadoopFileController {
     /**
      * Real delete all deleted files
      */
-    @PostMapping("/emptyTrash")
+    @GetMapping("/emptyTrash")
     public String emptyTrash(HttpServletRequest request) {
         String currentUser = request.getSession().getAttribute(CURRENT_USER).toString();
         for (HadoopFile deletedFile : hadoopFileService.getUserDeletedFiles(currentUser)) {

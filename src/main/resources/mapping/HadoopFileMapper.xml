@@ -171,4 +171,6 @@
             share_encrypt_code = #{shareEncryptCode}
         WHERE hash_code = #{hashCode}
     </update>
+
+    <!-- 收藏文文件 -->
 </mapper>

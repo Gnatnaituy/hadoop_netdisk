@@ -64,11 +64,15 @@ public class HadoopUserController {
         List<HadoopFile> sharedFileList = hadoopFileService.getSharedFiles();
 
         model.addAttribute("user", currentUser);
+        // Used for file manager navbar
         model.addAttribute(CURRENT_PATH, currentPath);
         model.addAttribute("paths", paths);
+        // User's files in file manager
         model.addAttribute("hadoopFileList", hadoopFileList);
         model.addAttribute("mySqlFileList", mySqlFileList);
+        // User's files in trash
         model.addAttribute("userDeletedFiles", userDeletedFiles);
+        // Shared files
         model.addAttribute("sharedFileList", sharedFileList);
 
         return "main";

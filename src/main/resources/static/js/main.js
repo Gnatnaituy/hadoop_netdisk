@@ -9,7 +9,7 @@ $(document).ready(function () {
     })
 });
 
-// 新建文件夹 搜索
+// 新建文件夹 搜索 搜索分享文件
 $(document).ready(function () {
     $("#mkdirForm").hide();
     $("#searchForm").hide();
@@ -42,6 +42,38 @@ $(document).ready(function () {
         }
     });
 });
+
+// 搜索热门资源的局部更新
+$(document).ready(function () {
+    var searchSharedForm = $("#searchSharedForm");
+    var searchSharedInput = $('#searchSharedInput');
+    searchSharedForm.hide();
+
+    $("#searchSharedButton").click(function () {
+        if (searchSharedForm.is(':hidden')) {
+            searchSharedForm.show();
+        } else {
+            if (searchSharedInput.val() === "") {
+                searchSharedForm.hide();
+            } else {
+                searchSharedForm.submit();
+                // $('#share_refresh').load('/file/query?isSearchShared=true&query=' + $('#searchSharedInput').val());
+                $.ajax({
+                    url: '/file/search',
+                    type: 'get',
+                    data: {
+                        isSearchShared: 'true',
+                        query: searchSharedInput.val()
+                    },
+                    success: function (data) {
+                        $('#shareFileListAccordion').html(data);
+                    }
+                });
+            }
+        }
+    });
+});
+
 
 // 阻止点击文件夹名称的冒泡事件
 $(function () {

@@ -51,8 +51,9 @@ public class HadoopUserServiceImpl implements HadoopUserService {
 
         // Store hadoopUser information to MySQL
         add(hadoopUser);
-        // Create home directory for hadoopUser on Hadoop
+        // Create home directory and favorite for hadoopUser on Hadoop
         hdfsService.mkdir(hadoopUser.getUsername());
+        hdfsService.mkdir(hadoopUser.getUsername() + "/" + "我的收藏");
     }
 
     public HadoopUser checkLogin(String username, String password) {

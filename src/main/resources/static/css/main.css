@@ -6,10 +6,3 @@
 .btn.active.focus {
     box-shadow: none
 }
-
-.col-center {
-    float: none;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-}
