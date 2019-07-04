@@ -42,7 +42,7 @@ public interface HadoopFileMapper {
 
     List<HadoopFile> getSharedFilesByUsername(String username);
 
-    List<HadoopFile> searchFiles(String query);
+    List<HadoopFile> searchFiles(String username, String query);
 
     List<HadoopFile> searchSharedFiles(String query);
 

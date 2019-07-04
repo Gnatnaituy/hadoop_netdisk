@@ -33,6 +33,8 @@ public interface HadoopFileService {
 
     int share(String shareExpireDay, String shareEncryptCode, String hashCode);
 
+    String verifyShareCode(String hashCode, String code);
+
     int upload(String currentPath, MultipartFile multipartFile);
 
     int download(String hashCode);
@@ -55,7 +57,7 @@ public interface HadoopFileService {
 
     List<HadoopFile> getSharedFilesOrderByShareDate();
 
-    List<HadoopFile> searchFiles(String query);
+    List<HadoopFile> searchFiles(String username, String query);
 
     List<HadoopFile> searchSharedFiles(String query);
 }

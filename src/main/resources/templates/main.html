@@ -2,10 +2,12 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en-US">
 
 <head>
-    <title th:text="${user.getUsername() + '的网盘'}"></title>
+    <title th:text="${currentUser.getUsername() + '的网盘'}"></title>
     <link rel="stylesheet" href="../static/css/bootstrap.css"/>
+    <link rel="stylesheet" href="../static/css/toastr.css">
     <script type="text/javascript" src="../static/js/jquery-3.4.1.min.js"></script>
     <script type="text/javascript" src="../static/js/bootstrap.bundle.js"></script>
+    <script type="text/javascript" src="../static/js/toastr.min.js"></script>
 </head>
 
 <body style="font-size: 14px">
@@ -15,19 +17,19 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark" role="navigation">
         <div class="container-fluid">
             <div class="navbar-header">
-                <a class="navbar-brand" th:href="@{/user/main}">Hadoop Netdisk</a>
+                <a class="navbar-brand" th:href="@{/currentUser/main}">Hadoop Netdisk</a>
             </div>
             <div class="collapse navbar-collapse justify-content-end">
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button"
-                           aria-haspopup="true" aria-expanded="false" th:text="${user.getUsername()}"></a>
+                           aria-haspopup="true" aria-expanded="false" th:text="${currentUser.getUsername()}"></a>
                         <div class="dropdown-menu dropdown-menu-right">
                             <a class="dropdown-item text-primary" href="#">修改资料</a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item text-primary" th:href="@{/user/logout}">退出</a>
+                            <a class="dropdown-item text-primary" th:href="@{/currentUser/logout}">退出</a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item text-primary" th:href="@{/user/unregister}">注销</a>
+                            <a class="dropdown-item text-primary" th:href="@{/currentUser/unregister}">注销</a>
                         </div>
                     </li>
                 </ul>
@@ -36,73 +38,81 @@
     </nav>
 </div>
 
+
 <div class="container-fluid" style="margin-top: 20px;">
     <div class="row">
-        <!-- Left Information about the user -->
+        <!-- User's information -->
         <div class="col-2">
+            <!-- User's personal information -->
             <div class="card">
-                <img src="#" th:src="${user.getAvatar()}" class="card-img-top" alt="avatar">
+                <img src="#" th:src="${currentUser.getAvatar()}" class="card-img-top" alt="avatar">
                 <div class="card-body">
-                    <h4 class="card-title font-weight-bold" th:text="${user.getUsername()}"></h4>
-                    <p class="card-text" th:text="${user.bio}"></p>
+                    <h4 class="card-title font-weight-bold" th:text="${currentUser.getUsername()}"></h4>
+                    <p class="card-text" th:text="${currentUser.bio}"></p>
                 </div>
             </div>
+
+            <!-- User's capacity information -->
             <div class="card" style="margin-top: 16px">
                 <div class="card-header font-weight-bold">容量使用情况</div>
-                <div class="card-body">
-                    <div class="progress">
-                        <div id="capacity" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                <ul class="list-group list-group-flush" id="capacity" th:fragment="capacity_refresh">
+                    <li class="list-group-item">
+                        <p style="display: none;" th:text="${currentUser.getUsedCapacity()}" id="capacity-used"></p>
+                        <p style="display: none;" th:text="${currentUser.getTotalCapacity()}" id="capacity-total"></p>
+                        <div class="progress">
+                            <div id="capacity-progress-bar" class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item" th:if="${user.getUsedCapacity() ge 1024.0}">
+                    </li>
+                    <li class="list-group-item" th:if="${currentUser.getUsedCapacity() ge 1024.0}">
                         已用容量:
                         <a class="float-right"
-                           th:text="${#numbers.formatDecimal(user.getUsedCapacity()/1024, 1, 2) + ' GB'}">
+                           th:text="${#numbers.formatDecimal(currentUser.getUsedCapacity()/1024, 1, 2) + ' GB'}">
                         </a>
                     </li>
-                    <li class="list-group-item" th:if="${user.getUsedCapacity() lt 1024.0}">
+                    <li class="list-group-item" th:if="${currentUser.getUsedCapacity() lt 1024.0}">
                         已用容量:
                         <a class="float-right"
-                           th:text="${#numbers.formatDecimal(user.getUsedCapacity(), 1, 2) + ' MB'}">
+                           th:text="${#numbers.formatDecimal(currentUser.getUsedCapacity(), 1, 2) + ' MB'}">
                         </a>
                     </li>
-                    <li class="list-group-item" th:if="${user.getUsedCapacity() ge 1024.0}">
+                    <li class="list-group-item" th:if="${currentUser.getUsedCapacity() ge 1024.0}">
                         剩余容量:
                         <a class="float-right"
-                           th:text="${#numbers.formatDecimal((user.getTotalCapacity() - user.getUsedCapacity()), 1, 2) + ' MB'}">
+                           th:text="${#numbers.formatDecimal((currentUser.getTotalCapacity() - currentUser.getUsedCapacity()), 1, 2) + ' MB'}">
                         </a>
                     </li>
-                    <li class="list-group-item" th:if="${user.getUsedCapacity() lt 1024.0}">
+                    <li class="list-group-item" th:if="${currentUser.getUsedCapacity() lt 1024.0}">
                         剩余容量:
                         <a class="float-right"
-                           th:text="${#numbers.formatDecimal((user.getTotalCapacity() - user.getUsedCapacity())/1024, 1, 2) + ' GB'}">
+                           th:text="${#numbers.formatDecimal((currentUser.getTotalCapacity() - currentUser.getUsedCapacity())/1024, 1, 2) + ' GB'}">
                         </a>
                     </li>
                     <li class="list-group-item">
                         总容量:
                         <a class="float-right"
-                           th:text="${#numbers.formatDecimal(user.getTotalCapacity()/1024, 1, 2)} + ' GB'">
+                           th:text="${#numbers.formatDecimal(currentUser.getTotalCapacity()/1024, 1, 2)} + ' GB'">
                         </a>
                     </li>
                 </ul>
             </div>
         </div>
 
-        <!-- Center File Manager -->
+        <!-- File Manager -->
         <div class="col-7">
-            <!-- file manage nav bar -->
-            <nav aria-label="breadcrumb">
+            <!-- File manager nav bar -->
+            <nav id="navbar" aria-label="breadcrumb" th:fragment="navbar_refresh">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item font-weight-bold" style="padding-left: 6px">当前路径: </li>
                     <li class="breadcrumb-item" th:each="path : ${paths}">
-                        <a th:href="@{/file/chdir(desPath=${path[1]})}" th:text="${path[0]}"></a>
+                        <!-- th:href="@{/file/chdir(desPath=${path[1]})}" -->
+                        <a th:text="${path[0]}" th:onclick="chdir([[${path[1]}]])"></a>
                     </li>
                 </ol>
             </nav>
-            <!-- File Manager -->
-            <div class="accordion" id="hadoopFileListAccordion">
+
+            <!-- File and directory list -->
+            <div class="accordion" id="hadoopFileListAccordion" th:fragment="file_manager_refresh">
                 <div class="card">
                     <div class="card-header" id="myNetDiskHeader" style="padding-top: 6px; padding-bottom: 6px">
                         <div class="container" style="padding-left: 0; padding-right: 0">
@@ -111,30 +121,36 @@
                                     <p class="font-weight-bold" style="font-size: 16px; margin: 5px 0 0;">我的网盘</p>
                                 </div>
                                 <div class="col-8">
-                                    <form id="uploadForm" th:action="@{/file/upload}" th:method="post" enctype="multipart/form-data">
+                                    <!-- Upload file from -->
+                                    <form id="uploadForm" enctype="multipart/form-data">
                                         <input id="uploadInput" type="file" name="file" style="display: none">
                                     </form>
+                                    <!-- Function button -->
                                     <div class="btn-toolbar" role="toolbar" aria-label="function" style="float: right">
                                         <div class="btn-group mr-3" role="group">
-                                            <button id="uploadButton" type="button" class="btn btn-outline-primary btn-sm"
-                                                    style="font-size: 14px">
+                                            <button type="button" id="uploadButton" class="btn btn-outline-primary btn-sm"
+                                                    style="font-size: 14px" onclick="uploadFile()">
                                                 上传
                                             </button>
                                         </div>
                                         <div class="btn-group" role="group">
                                             <button id="mkdirButton" type="button" class="btn btn-outline-primary btn-sm"
+                                                    onclick="mkdir()"
                                                     style="font-size: 14px;">
                                                 新建文件夹
                                             </button>
-                                            <form id="mkdirForm" th:action="@{/file/mkdir}" th:method="post">
-                                                <input class="form-control" id="mkdirInput" name="directory"
-                                                       style="font-size: 11px; padding: 0;" type="text">
+                                            <form id="mkdirForm">
+                                                <input class="form-control" id="mkdirInput" type="text"
+                                                       style="font-size: 11px; padding: 0; margin-right: 8px;"
+                                                       placeholder="新建文件夹">
                                             </form>
-                                            <form id="searchForm" th:action="@{/file/search}" th:method="post">
-                                                <input class="form-control" id="searchInput" name="query"
-                                                       style="font-size: 11px; padding: 0;" type="text">
+                                            <form id="searchForm">
+                                                <input class="form-control" id="searchInput" type="text"
+                                                       style="font-size: 11px; padding: 0; margin-left: 8px;"
+                                                       placeholder="新建文件夹">
                                             </form>
                                             <button id="searchButton" type="button" class="btn btn-outline-primary btn-sm"
+                                                    onclick="search()"
                                                     style="font-size: 14px">
                                                 搜索
                                             </button>
@@ -145,30 +161,35 @@
                         </div>
                     </div>
                 </div>
+
                 <!-- Display and Manipulation for Files and Folders -->
-                <div class="card" th:each="hadoopFile : ${hadoopFileList}">
+                <div class="card" th:each="hadoopFile : ${userHadoopFiles}">
                     <div class="card-header" style="background-color: white" th:id="${'header' + hadoopFile.get('htmlID')}">
                         <div class="container" style="padding-left: 0; padding-right: 0">
                             <div class="row" data-toggle="collapse" aria-expanded="true"
                                  th:href="'#' + ${'file' + hadoopFile.get('htmlID')}"
                                  th:aria-controls="${'file' + hadoopFile.get('htmlID')}">
+                                <!-- File or directory name -->
                                 <div class="col-8">
+                                    <!-- th:href="@{/file/chdir(desPath=${currentPath + hadoopFile.get('fileName') + '/'})}" -->
                                     <div th:if="${hadoopFile.get('isDir') == true}">
-                                        <a class="font-weight-normal" style="margin: 0;" id="dirId"
-                                           th:href="@{/file/chdir(desPath=${currentPath + hadoopFile.get('fileName') + '/'})}"
-                                           th:text="${hadoopFile.get('fileName')}">
+                                        <a class="text-primary font-weight-normal" style="margin: 0;" id="dirId"
+                                           th:text="${hadoopFile.get('fileName')}"
+                                           th:onclick="chdir([[${currentPath} + ${hadoopFile.get('fileName') + '/'}]])">
                                         </a>
                                     </div>
                                     <a th:if="${hadoopFile.get('isDir') == false}" class="font-weight-normal text-primary"
                                        style="margin: 0" th:text="${hadoopFile.get('fileName')}">
                                     </a>
                                 </div>
+                                <!-- File size -->
                                 <div class="col-2">
                                     <p style="margin: 0;" th:if="${hadoopFile.get('isDir') == true}">-</p>
                                     <p style="margin: 0;" th:if="${hadoopFile.get('isDir') == false}"
                                        th:text="${#numbers.formatDecimal(hadoopFile.get('fileSize')/1048576.0, 1, 2)} + ' MB'">
                                     </p>
                                 </div>
+                                <!-- Modification date -->
                                 <div class="col-2">
                                     <p style="margin: 0; float: right" th:text="${hadoopFile.get('lastModifiedDate')}"></p>
                                 </div>
@@ -197,6 +218,7 @@
                                                 </button>
                                             </div>
                                         </div>
+                                        <!-- Share modal -->
                                         <div class="modal fade" tabindex="-1" role="dialog"
                                              th:id="'shareModal' + ${hadoopFile.get('htmlID')}"
                                              aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
@@ -209,28 +231,35 @@
                                                         </button>
                                                     </div>
                                                     <div class="modal-body">
-                                                        <form class="form-inline" th:action="@{/file/share}" th:method="post">
-                                                            <div class="form-group" style="width: 80%">
-                                                                <input class="text-hide" name="hashCode" th:value="${hadoopFile.get('hashCode')}">
-                                                                <div class="form-check form-check-inline">
-                                                                    <label>7
-                                                                        <input class="btn btn-outline-primary" type="checkbox" name="shareExpireDay" value="7">
-                                                                    </label>
-                                                                    <label>31
-                                                                        <input class="btn btn-outline-primary" type="checkbox" name="shareExpireDay" value="31">
-                                                                    </label>
-                                                                    <label>365
-                                                                        <input class="btn btn-outline-primary" type="checkbox" name="shareExpireDay" value="365">
-                                                                    </label>
-                                                                </div>
-                                                                <input type="text" class="form-control" name="shareEncryptCode" style="width: 70%">
+                                                        <form th:id="'share' + ${hadoopFile.get('hashCode')}" class="form">
+                                                            <div class="form-group row">
+                                                                <label th:for="${hadoopFile.get('hashCode') + 'expireDay'}"
+                                                                       style="font-size: 16px"
+                                                                       class="col-md-2 col-form-label">时长</label>
+                                                                <div class="col-sm-10">
+                                                                    <input type="text" class="form-control" th:id="${hadoopFile.get('hashCode') + 'expireDay'}"
+                                                                           placeholder="分享过期时间, 单位天, 必填"></div>
                                                             </div>
-                                                            <button type="submit" class="btn btn-outline-primary">确定</button>
+                                                            <div class="form-group row">
+                                                                <label th:for="${hadoopFile.get('hashCode') + 'encryptCode'}"
+                                                                       style="font-size: 16px"
+                                                                       class="col-md-2 col-form-label">密码</label>
+                                                                <div class="col-sm-10">
+                                                                    <input type="email" class="form-control" th:id="${hadoopFile.get('hashCode') + 'encryptCode'}"
+                                                                           placeholder="分享密码, 选填">
+                                                                </div>
+                                                            </div>
                                                         </form>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                                                        <button type="button" class="btn btn-primary" data-dismiss="modal"
+                                                                th:onclick="share([[${hadoopFile.get('hashCode')}]])">确定</button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+                                        <!-- Rename modal -->
                                         <div class="modal fade" tabindex="-1" role="dialog"
                                              th:id="'renameModal' + ${hadoopFile.get('htmlID')}"
                                              aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
@@ -243,16 +272,25 @@
                                                         </button>
                                                     </div>
                                                     <div class="modal-body">
-                                                        <form class="form-inline" th:action="@{/file/rename}" th:method="post">
-                                                            <div class="form-group" style="width: 80%">
-                                                                <input class="text-hide" name="oldHdfsPath" th:value="${hadoopFile.get('hdfsPath')}">
-                                                                <input class="text-hide" name="isDir" th:value="${hadoopFile.get('isDir')}">
-                                                                <input class="text-hide" name="hashCode" th:value="${hadoopFile.get('hashCode')}">
-                                                                <input type="text" class="form-control" name="newFileName" style="width: 95%"
+                                                        <form th:id="${hadoopFile.get('hashCode')}" class="form-inline">
+                                                            <div class="form-group" style="width: 100%;">
+                                                                <input th:id="'oldHdfsPath' + ${hadoopFile.get('hashCode')}"
+                                                                       class="text-hide" name="oldHdfsPath" th:value="${hadoopFile.get('hdfsPath')}">
+                                                                <input th:id="'isDir' + ${hadoopFile.get('hashCode')}"
+                                                                       class="text-hide" name="isDir" th:value="${hadoopFile.get('isDir')}">
+                                                                <input th:id="'hashCode' + ${hadoopFile.get('hashCode')}"
+                                                                       class="text-hide" name="hashCode" th:value="${hadoopFile.get('hashCode')}">
+                                                                <input th:id="'newFileName' + ${hadoopFile.get('hashCode')}"
+                                                                       style="width: 100%;"
+                                                                       type="text" class="form-control" name="newFileName"
                                                                        th:value="${hadoopFile.get('fileName')}">
                                                             </div>
-                                                            <button type="submit" class="btn btn-outline-primary">确定</button>
                                                         </form>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                                                        <button type="button" class="btn btn-primary" data-dismiss="modal"
+                                                                th:onclick="rename([[${hadoopFile.get('hashCode')}]])">确定</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -260,10 +298,11 @@
                                     </div>
                                     <div class="col-6">
                                         <div class="btn-toolbar" role="toolbar" style="float: left" aria-label="function">
+                                            <!-- data-toggle="modal" th:data-target="'#downloadModal' + ${hadoopFile.get('htmlID')}" -->
                                             <div class="btn-group" role="group">
                                                 <button th:if="${hadoopFile.get('isDir') == false}" type="button"
-                                                        data-toggle="modal" th:data-target="'#downloadModal' + ${hadoopFile.get('htmlID')}"
-                                                        class="btn btn-outline-primary btn-sm" style="font-size: 14px">
+                                                        class="btn btn-outline-primary btn-sm" style="font-size: 14px"
+                                                        th:onclick="download([[${hadoopFile.get('hashCode')}]])">
                                                     下载
                                                 </button>
                                                 <button type="button"
@@ -271,37 +310,6 @@
                                                         class="btn btn-outline-primary btn-sm" style="font-size: 14px">
                                                     删除
                                                 </button>
-                                            </div>
-                                        </div>
-                                        <div class="modal fade bd-example-modal-sm" tabindex="-1" role="dialog"
-                                             th:id="'downloadModal' + ${hadoopFile.get('htmlID')}"
-                                             aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">下载</h5>
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <form class="form-inline" th:action="@{/file/download}" th:method="post">
-                                                            <div class="container">
-                                                                <div class="row">
-                                                                    <div class="col-6">
-                                                                        <input class="text-hide" name="hashCode" th:value="${hadoopFile.get('hashCode')}">
-                                                                        <button type="button" class="btn btn-outline-primary btn-sm"
-                                                                                style="float: right;"
-                                                                                data-dismiss="modal">取消</button>
-                                                                    </div>
-                                                                    <div class="col-6">
-                                                                        <button type="submit" class="btn btn-outline-primary btn-sm">确定</button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                </div>
                                             </div>
                                         </div>
                                         <div class="modal fade bd-example-modal-sm" tabindex="-1" role="dialog"
@@ -317,39 +325,17 @@
                                                     </div>
                                                     <div class="modal-body">
                                                         <div class="modal-body">
-                                                            <form th:if="${hadoopFile.get('isDir') == false}" class="form-inline"
-                                                                  th:action="@{/file/markDeleted}" th:method="post">
-                                                                <div class="container">
-                                                                    <div class="row">
-                                                                        <div class="col-6">
-                                                                            <input class="text-hide" name="hashCode" th:value="${hadoopFile.get('hashCode')}">
-                                                                            <button type="button" class="btn btn-outline-primary btn-sm" 
-                                                                                    style="float: right;"
-                                                                                    data-dismiss="modal">取消</button>
-                                                                        </div>
-                                                                        <div class="col-6">
-                                                                            <button type="submit" class="btn btn-outline-primary btn-sm">确定</button>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </form>
-                                                            <form th:if="${hadoopFile.get('isDir') == true}" class="form-inline"
-                                                                  th:action="@{/file/markDirDeleted}" th:method="post">
-                                                                <div class="container">
-                                                                    <div class="row">
-                                                                        <div class="col-6">
-                                                                            <input class="text-hide" name="hdfsPath" th:value="${hadoopFile.get('hdfsPath')}">
-                                                                            <button type="button" class="btn btn-outline-primary btn-sm"
-                                                                                    style="float: right;"
-                                                                                    data-dismiss="modal">取消</button>
-                                                                        </div>
-                                                                        <div class="col-6">
-                                                                            <button type="submit" class="btn btn-outline-primary btn-sm">确定</button>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </form>
+                                                            <p>你确定要删除吗? 删除后你可在回收站找回文件</p>
                                                         </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                                                        <button type="button" class="btn btn-primary" data-dismiss="modal"
+                                                                th:if="${hadoopFile.get('isDir') == true}"
+                                                                th:onclick="deleteDir([[${hadoopFile.get('hdfsPath').toString()}]])">确定</button>
+                                                        <button type="button" class="btn btn-primary" data-dismiss="modal"
+                                                                th:if="${hadoopFile.get('isDir') == false}"
+                                                                th:onclick="deleteFile([[${hadoopFile.get('hashCode')}]])">确定</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -363,6 +349,7 @@
             </div>
         </div>
 
+        <!-- Shared files and Trash -->
         <div class="col-3">
             <!-- Shared Files -->
             <div class="accordion" id="shareFileListAccordion" th:fragment="share_refresh">
@@ -377,16 +364,15 @@
                                     <div class="container">
                                         <div class="row">
                                             <div class="col-7" style="padding-left: 0; padding-right: 0">
-                                                <form id="searchSharedForm" th:action="@{/file/search}" th:method="get" onsubmit="return false">
-                                                    <input style="display: none;" name="isSearchShared" value="true" type="text">
-                                                    <input class="form-control" id="searchSharedInput" name="query"
-                                                           style="font-size: 11px; padding: 0;" type="text">
+                                                <form id="searchSharedForm">
+                                                    <input class="form-control" id="searchSharedInput" style="font-size: 11px; padding: 0;" type="text">
                                                 </form>
                                             </div>
                                             <div class="col-5" style="padding-left: 0; padding-right: 0;">
                                                 <div class="btn-toolbar" role="toolbar" aria-label="function" style="float: right">
                                                     <div class="btn-group" role="group">
                                                         <button id="searchSharedButton" type="button" class="btn btn-outline-primary btn-sm"
+                                                                onclick="searchShared()"
                                                                 style="font-size: 14px">
                                                             搜索
                                                         </button>
@@ -400,7 +386,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="card" th:each="sharedFile : ${sharedFileList}">
+                <div class="card" th:each="sharedFile : ${sharedFiles}">
                     <div class="card-header" style="background-color: white" data-toggle="collapse" aria-expanded="true"
                          th:href="'#' + ${'a' + sharedFile.getHashCode().substring(0,5)}"
                          th:aria-controls="${'a' + sharedFile.getHashCode().substring(0,5)}"
@@ -425,42 +411,19 @@
                                 <li class="list-group-item">
                                     <div class="btn-toolbar" role="toolbar" style="float: left" aria-label="function">
                                         <div class="btn-group" role="group">
-                                            <button type="button" data-toggle="modal"
-                                                    th:data-target="'#downloadModal' + ${sharedFile.getHashCode()}"
-                                                    class="btn btn-outline-primary btn-sm" style="font-size: 14px">
+                                            <button th:if="${sharedFile.isShareEncrypt() == false}" type="button" class="btn btn-outline-primary btn-sm" style="font-size: 14px"
+                                                    th:onclick="download([[${sharedFile.getHashCode()}]])">
                                                 下载
                                             </button>
-                                        </div>
-                                    </div>
-                                    <div class="modal fade bd-example-modal-sm" tabindex="-1" role="dialog"
-                                         th:id="'downloadModal' + ${sharedFile.getHashCode()}"
-                                         aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">下载</h5>
-                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
+                                            <form class="form-inline" th:if="${sharedFile.isShareEncrypt() == true}">
+                                                <div class="form-group mb-2">
+                                                    <input class="form-control" th:id="'code' + ${sharedFile.getHashCode()}" type="text" placeholder="请输入分享码">
                                                 </div>
-                                                <div class="modal-body">
-                                                    <form class="form-inline" th:action="@{/file/download}" th:method="post">
-                                                        <div class="container">
-                                                            <div class="row">
-                                                                <div class="col-6">
-                                                                    <input class="text-hide" name="hashCode" th:value="${sharedFile.getHashCode()}">
-                                                                    <button type="button" class="btn btn-outline-primary btn-sm"
-                                                                            style="float: right;"
-                                                                            data-dismiss="modal">取消</button>
-                                                                </div>
-                                                                <div class="col-6">
-                                                                    <button type="submit" class="btn btn-outline-primary btn-sm">确定</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
+                                                <button th:if="${sharedFile.isShareEncrypt() == true}" type="button" class="btn btn-outline-primary mb-2" style="font-size: 14px"
+                                                        th:onclick="verify([[${sharedFile.getHashCode()}]])">
+                                                    下载
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
                                 </li>
@@ -470,8 +433,9 @@
                 </div>
             </div>
 
-            <!-- Deleted files -->
-            <div class="accordion" id="deletedFileListAccordion" th:fragment="delete_refresh" style="margin-top: 20px;">
+            <!-- Trash -->
+            <div class="accordion" id="deletedFileListAccordion" th:fragment="trash_refresh" style="margin-top: 20px;">
+                <!-- Trash header -->
                 <div class="card">
                     <div class="card-header" style="padding-top: 6px; padding-bottom: 6px">
                         <div class="container" style="padding-left: 0;padding-right: 0">
@@ -493,35 +457,29 @@
                         </div>
                     </div>
                 </div>
+                <!-- Empty Trash modal -->
                 <div class="modal fade bd-example-modal-sm" tabindex="-1" role="dialog"
                      id="emptyTrashModal" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">你确定清空回收站吗?</h5>
+                                <h5 class="modal-title">清空回收站</h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
                             <div class="modal-body">
-                                <form class="form-inline" th:action="@{/file/emptyTrash}" th:method="get" onsubmit="return false">
-                                    <div class="container">
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <button type="button" class="btn btn-outline-primary btn-sm"
-                                                        style="float: right;"
-                                                        data-dismiss="modal">取消</button>
-                                            </div>
-                                            <div class="col-6">
-                                                <button type="submit" class="btn btn-outline-primary btn-sm">确定</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
+                                <p>你确定清空回收站吗? 这将无法恢复已删除的文件!</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                                <button type="button" class="btn btn-primary" data-dismiss="modal"
+                                        onclick="emptyTrash()">确定</button>
                             </div>
                         </div>
                     </div>
                 </div>
+                <!-- Deleted file list -->
                 <div class="card" th:each="deletedFile : ${userDeletedFiles}">
                     <div class="card-header" style="background-color: white" data-toggle="collapse" aria-expanded="true"
                          th:href="'#' + ${'a' + deletedFile.getHashCode().substring(0,5)}"
@@ -544,78 +502,14 @@
                                 <li class="list-group-item">
                                     <div class="btn-toolbar" role="toolbar" style="float: left" aria-label="function">
                                         <div class="btn-group" role="group">
-                                            <button type="button" data-toggle="modal"
-                                                    th:data-target="'#restoreModal' + ${deletedFile.getHashCode()}"
-                                                    class="btn btn-outline-primary btn-sm" style="font-size: 14px">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" style="font-size: 14px"
+                                                    th:onclick="restore([[${deletedFile.getHashCode()}]])">
                                                 还原
                                             </button>
-                                            <button type="button" data-toggle="modal"
-                                                    th:data-target="'#realDeleteModal' + ${deletedFile.getHashCode()}"
-                                                    class="btn btn-outline-primary btn-sm" style="font-size: 14px">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" style="font-size: 14px"
+                                                    th:onclick="realDelete([[${deletedFile.getHashCode()}]])">
                                                 永久删除
                                             </button>
-                                        </div>
-                                    </div>
-                                    <div class="modal fade bd-example-modal-sm" tabindex="-1" role="dialog"
-                                         th:id="'restoreModal' + ${deletedFile.getHashCode()}"
-                                         aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">还原</h5>
-                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <form class="form-inline" th:action="@{/file/restore}" th:method="post" onsubmit="return false">
-                                                        <div class="container">
-                                                            <div class="row">
-                                                                <div class="col-6">
-                                                                    <input class="text-hide" name="hashCode" th:value="${deletedFile.getHashCode()}">
-                                                                    <button type="button" class="btn btn-outline-primary btn-sm"
-                                                                            style="float: right;"
-                                                                            data-dismiss="modal">取消</button>
-                                                                </div>
-                                                                <div class="col-6">
-                                                                    <button type="submit" class="btn btn-outline-primary btn-sm">确定</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal fade bd-example-modal-sm" tabindex="-1" role="dialog"
-                                         th:id="'realDeleteModal' + ${deletedFile.getHashCode()}"
-                                         aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">你确定永久删除吗?</h5>
-                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <form class="form-inline" th:action="@{/file/realDelete}" th:method="post" onsubmit="return false">
-                                                        <div class="container">
-                                                            <div class="row">
-                                                                <div class="col-6">
-                                                                    <input class="text-hide" name="hashCode" th:value="${deletedFile.getHashCode()}">
-                                                                    <button type="button" class="btn btn-outline-primary btn-sm"
-                                                                            style="float: right;"
-                                                                            data-dismiss="modal">取消</button>
-                                                                </div>
-                                                                <div class="col-6">
-                                                                    <button type="submit" class="btn btn-outline-primary btn-sm">确定</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                 </li>
@@ -627,9 +521,6 @@
         </div>
     </div>
 </div>
-
-<p class="hide text-hide" th:text="${user.getUsedCapacity()}" id="used"></p>
-<p class="hide text-hide" th:text="${user.getTotalCapacity()}" id="total"></p>
 
 
 <link rel="stylesheet" href="../static/css/main.css">

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import sun.awt.ModalExclude;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.MessageFormat;
@@ -31,6 +32,12 @@ public class HadoopUserController {
     
     private final String CURRENT_USER = "currentUser";
     private final String CURRENT_PATH = "currentPath";
+    private final String PATHS = "paths";
+    private final String USER_HADOOP_FILES = "userHadoopFiles";
+    private final String USER_MYSQL_FILES = "userMySQLFiles";
+    private final String USER_DELETED_FILES = "userDeletedFiles";
+    private final String SHARED_FILES = "sharedFiles";
+
     private final String MSG = "msg";
 
     private Logger logger = LoggerFactory.getLogger(HadoopUserController.class);
@@ -52,30 +59,56 @@ public class HadoopUserController {
 
         List<String[]> paths = new ArrayList<>();
         StringBuilder absPath = new StringBuilder();
-
         for (String path : currentPath.split("/")) {
             absPath.append(path).append("/");
             paths.add(new String[]{path, absPath.toString()});
         }
 
-        List<Map<String, Object>> hadoopFileList = hdfsService.listFiles(currentPath, null);
-        List<HadoopFile> mySqlFileList = hadoopFileService.getUserFiles(currentUser.getUsername());
+        List<Map<String, Object>> userHadoopFiles = hdfsService.listFiles(currentPath, null);
+        List<HadoopFile> userMySQLFiles = hadoopFileService.getUserFiles(currentUser.getUsername());
         List<HadoopFile> userDeletedFiles = hadoopFileService.getUserDeletedFiles(currentUser.getUsername());
-        List<HadoopFile> sharedFileList = hadoopFileService.getSharedFiles();
+        List<HadoopFile> sharedFiles = hadoopFileService.getSharedFiles();
 
-        model.addAttribute("user", currentUser);
-        // Used for file manager navbar
+        model.addAttribute(CURRENT_USER, currentUser);
         model.addAttribute(CURRENT_PATH, currentPath);
-        model.addAttribute("paths", paths);
-        // User's files in file manager
-        model.addAttribute("hadoopFileList", hadoopFileList);
-        model.addAttribute("mySqlFileList", mySqlFileList);
-        // User's files in trash
-        model.addAttribute("userDeletedFiles", userDeletedFiles);
-        // Shared files
-        model.addAttribute("sharedFileList", sharedFileList);
+        model.addAttribute(PATHS, paths);
+        model.addAttribute(USER_HADOOP_FILES, userHadoopFiles);
+        model.addAttribute(USER_MYSQL_FILES, userMySQLFiles);
+        model.addAttribute(USER_DELETED_FILES, userDeletedFiles);
+        model.addAttribute(SHARED_FILES, sharedFiles);
 
         return "main";
+    }
+
+    /**
+     * Update capacity information
+     */
+    @GetMapping("/updateCapacity")
+    public String updateCapacity(Model model, HttpServletRequest request) {
+        HadoopUser currentUser = hadoopUserService.query(request.getSession().getAttribute(CURRENT_USER).toString());
+        model.addAttribute(CURRENT_USER, currentUser);
+
+        return "main::capacity_refresh";
+    }
+
+    /**
+     * Update capacity information
+     */
+    @GetMapping("/updateNavbar")
+    public String updateNavbar(Model model, HttpServletRequest request) {
+        String currentPath = hadoopFileService.getCurrentDir(request);
+
+        List<String[]> paths = new ArrayList<>();
+        StringBuilder absPath = new StringBuilder();
+        for (String path : currentPath.split("/")) {
+            absPath.append(path).append("/");
+            paths.add(new String[]{path, absPath.toString()});
+        }
+
+        model.addAttribute(CURRENT_PATH, currentPath);
+        model.addAttribute(PATHS, paths);
+
+        return "main::capacity_refresh";
     }
 
     /**

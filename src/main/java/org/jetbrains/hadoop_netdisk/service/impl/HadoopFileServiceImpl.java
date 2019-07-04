@@ -123,6 +123,12 @@ public class HadoopFileServiceImpl implements HadoopFileService {
         }
     }
 
+    public String verifyShareCode(String hashCode, String code) {
+        HadoopFile file = query(hashCode);
+
+        return code.equals(file.getShareEncryptCode()) ? "true" : "false";
+    }
+
     public int upload(String currentPath, MultipartFile multipartFile) {
         String currentUser = currentPath.split("/")[0];
         // Convert multipartFile to File
@@ -198,8 +204,8 @@ public class HadoopFileServiceImpl implements HadoopFileService {
         return hadoopFileMapper.getSharedFilesByUsername(username);
     }
 
-    public List<HadoopFile> searchFiles(String query) {
-        return hadoopFileMapper.searchFiles(query);
+    public List<HadoopFile> searchFiles(String username, String query) {
+        return hadoopFileMapper.searchFiles(username, query);
     }
 
     public List<HadoopFile> searchSharedFiles(String query) {
