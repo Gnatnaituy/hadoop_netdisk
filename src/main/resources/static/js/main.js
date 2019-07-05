@@ -1,13 +1,7 @@
+// Stop bubbling event of click directory
 $(document).ready(function () {
     hideForms();
     updateCapacity();
-
-    // Stop bubbling event of click directory
-    $(function () {
-        $("a#dirId").click(function (event) {
-            event.stopPropagation();
-        });
-    });
 });
 
 // Upload file
@@ -40,20 +34,25 @@ function uploadFile() {
 
 // Create Directory
 function mkdir() {
+    var mkdirForm = $("#mkdirForm");
     var mkdirInput = $("#mkdirInput");
+    var searchForm = $("#searchForm");
 
-    if (mkdirInput.is(':hidden')) {
-        $("#mkdirForm").show();
+    if (mkdirForm.is(':hidden')) {
+        mkdirForm.show();
+        if (!searchForm.is(':hidden')) {
+            searchForm.hide();
+        }
     } else {
         if (mkdirInput.val() === "") {
-            mkdirInput.hide()
+            mkdirForm.hide()
         } else {
-            var mkdirForm = new FormData();
-            mkdirForm.append("directory", mkdirInput.val());
+            var form = new FormData();
+            form.append("directory", mkdirInput.val());
             $.ajax({
                 url: "/file/mkdir",
                 type: "post",
-                data: mkdirForm,
+                data: form,
                 async: true,
                 cache: false,
                 processData: false,
@@ -68,13 +67,42 @@ function mkdir() {
     }
 }
 
+// Rename a file or directory
+function rename(hashCode) {
+    var form = new FormData();
+    form.append("oldHdfsPath", $("#oldHdfsPath" + hashCode).val());
+    form.append("hashCode", $("#hashCode" + hashCode).val());
+    form.append("isDir", $("#isDir" + hashCode).val());
+    form.append("newFileName", $("#newFileName" + hashCode).val());
+
+    $.ajax({
+        url: "/file/rename",
+        type: "post",
+        data: form,
+        async: true,
+        cache: false,
+        processData: false,
+        contentType: false,
+        success: function (data) {
+            toastr.success("重命名成功!");
+            $('#hadoopFileListAccordion').html(data);
+            updateShare();
+            hideForms();
+        }
+    });
+}
+
 // Search user's file
 function search() {
     var searchForm = $('#searchForm');
     var searchInput = $('#searchInput');
+    var mkdirForm = $('#mkdirForm');
     
     if (searchForm.is(':hidden')) {
         searchForm.show();
+        if (!(mkdirForm.is(':hidden'))) {
+            mkdirForm.hide();
+        }
     } else {
         if (searchInput.val() === "") {
             searchForm.hide();
@@ -126,7 +154,8 @@ function searchShared() {
 }
 
 // Change directory
-function chdir(directory) {
+function chdir(event, directory) {
+    event.stopPropagation();
     $.ajax({
         url: "/file/chdir?desPath=" + directory,
         type: 'get',
@@ -143,8 +172,9 @@ function chdir(directory) {
         error: function () {
             alert("Change directory Error!");
         }
-    });
+    })
 }
+
 
 // Share a user's file
 function share(hashCode) {
@@ -168,11 +198,51 @@ function share(hashCode) {
     });
 }
 
+// Download shared file
+function downloadShare(hashCode) {
+    var downloadShareFrom = $("#downloadShareForm" + hashCode);
+    var downloadShareInput = $("#downloadShareInput" + hashCode);
+    var saveShareForm = $("#saveShareForm" + hashCode);
+
+    if (downloadShareFrom.is(':hidden')) {
+        downloadShareFrom.show();
+        if (!saveShareForm.is(':hidden')) {
+            saveShareForm.hide();
+        }
+    } else {
+        if (downloadShareInput.val() === "") {
+            downloadShareFrom.hide();
+        } else {
+            verify(hashCode, downloadShareInput.val(), "true");
+        }
+    }
+}
+
+// Save shared file
+function saveShare(hashCode) {
+    var saveShareFrom = $("#saveShareForm" + hashCode);
+    var saveShareInput = $("#saveShareInput" + hashCode);
+    var downloadShareForm = $("#downloadShareForm" + hashCode);
+
+    if (saveShareFrom.is(':hidden')) {
+        saveShareFrom.show();
+        if (!downloadShareForm.is(':hidden')) {
+            downloadShareForm.hide();
+        }
+    } else {
+        if (saveShareInput.val() === "") {
+            saveShareFrom.hide();
+        } else {
+            verify(hashCode, saveShareInput.val(), "false");
+        }
+    }
+}
+
 // Verify share encrypt code
-function verify(hashCode) {
+function verify(hashCode, code, isDownload) {
     var form = new FormData();
     form.append("hashCode", hashCode);
-    form.append("code", $("#code" + hashCode).val());
+    form.append("code", code);
 
     $.ajax({
         url: "/file/verify",
@@ -184,36 +254,16 @@ function verify(hashCode) {
         contentType: false,
         success: function (data) {
             if (data === "true") {
-                toastr.success("密码正确, 开始下载!");
-                download(hashCode);
+                if (isDownload === "true") {
+                    toastr.success("密码正确, 开始下载!");
+                    download(hashCode);
+                } else {
+                    toastr.success("密码正确, 开始保存到我的收藏!");
+                    save(hashCode);
+                }
             } else {
                 toastr.error("密码错误!");
             }
-            hideForms();
-        }
-    });
-}
-
-// Rename a file or directory
-function rename(hashCode) {
-    var form = new FormData();
-    form.append("oldHdfsPath", $("#oldHdfsPath" + hashCode).val());
-    form.append("hashCode", $("#hashCode" + hashCode).val());
-    form.append("isDir", $("#isDir" + hashCode).val());
-    form.append("newFileName", $("#newFileName" + hashCode).val());
-
-    $.ajax({
-        url: "/file/rename",
-        type: "post",
-        data: form,
-        async: true,
-        cache: false,
-        processData: false,
-        contentType: false,
-        success: function (data) {
-            toastr.success("重命名成功!");
-            $('#hadoopFileListAccordion').html(data);
-            updateShare();
             hideForms();
         }
     });
@@ -235,6 +285,30 @@ function download(hashCode) {
         success: function (data) {
             toastr.success("下载成功!");
             updateFileManager();
+        }
+    });
+}
+
+// Save a file
+function save(hashCode) {
+    var form = new FormData();
+    form.append("hashCode", hashCode);
+
+    $.ajax({
+        url: "/file/save",
+        type: "post",
+        data: form,
+        async: true,
+        cache: false,
+        processData: false,
+        contentType: false,
+        success: function () {
+            toastr.success("保存成功!");
+            updateFileManager();
+            updateCapacity();
+        },
+        error: function () {
+            toastr.error("Symlinks not supported");
         }
     });
 }
@@ -343,9 +417,9 @@ function emptyTrash() {
         cache: false,
         processData: false,
         contentType: false,
-        success: function (data) {
+        success: function () {
             toastr.success("清空回收站成功!");
-            $('#deletedFileListAccordion').html(data);
+            updateTrash();
         }
     });
 }

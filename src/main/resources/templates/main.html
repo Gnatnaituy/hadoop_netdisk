@@ -27,9 +27,9 @@
                         <div class="dropdown-menu dropdown-menu-right">
                             <a class="dropdown-item text-primary" href="#">修改资料</a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item text-primary" th:href="@{/currentUser/logout}">退出</a>
+                            <a class="dropdown-item text-primary" th:href="@{/user/logout}">退出</a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item text-primary" th:href="@{/currentUser/unregister}">注销</a>
+                            <a class="dropdown-item text-primary" th:href="@{/user/unregister}">注销</a>
                         </div>
                     </li>
                 </ul>
@@ -105,8 +105,7 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item font-weight-bold" style="padding-left: 6px">当前路径: </li>
                     <li class="breadcrumb-item" th:each="path : ${paths}">
-                        <!-- th:href="@{/file/chdir(desPath=${path[1]})}" -->
-                        <a th:text="${path[0]}" th:onclick="chdir([[${path[1]}]])"></a>
+                        <a class="text-primary" th:text="${path[0]}" th:onclick="chdir(event, [[${path[1]}]])"></a>
                     </li>
                 </ol>
             </nav>
@@ -139,15 +138,15 @@
                                                     style="font-size: 14px;">
                                                 新建文件夹
                                             </button>
-                                            <form id="mkdirForm">
+                                            <form id="mkdirForm" style="margin-right: 8px;">
                                                 <input class="form-control" id="mkdirInput" type="text"
-                                                       style="font-size: 11px; padding: 0; margin-right: 8px;"
+                                                       style="font-size: 11px; padding: 0 0 0 8px;"
                                                        placeholder="新建文件夹">
                                             </form>
-                                            <form id="searchForm">
+                                            <form id="searchForm" style="margin-left: 8px;">
                                                 <input class="form-control" id="searchInput" type="text"
-                                                       style="font-size: 11px; padding: 0; margin-left: 8px;"
-                                                       placeholder="新建文件夹">
+                                                       style="font-size: 11px; padding: 0 0 0 8px;"
+                                                       placeholder="搜索我的文件">
                                             </form>
                                             <button id="searchButton" type="button" class="btn btn-outline-primary btn-sm"
                                                     onclick="search()"
@@ -171,11 +170,10 @@
                                  th:aria-controls="${'file' + hadoopFile.get('htmlID')}">
                                 <!-- File or directory name -->
                                 <div class="col-8">
-                                    <!-- th:href="@{/file/chdir(desPath=${currentPath + hadoopFile.get('fileName') + '/'})}" -->
                                     <div th:if="${hadoopFile.get('isDir') == true}">
                                         <a class="text-primary font-weight-normal" style="margin: 0;" id="dirId"
                                            th:text="${hadoopFile.get('fileName')}"
-                                           th:onclick="chdir([[${currentPath} + ${hadoopFile.get('fileName') + '/'}]])">
+                                           th:onclick="chdir(event, [[${hadoopFile.get('relativePath') + '/'}]])">
                                         </a>
                                     </div>
                                     <a th:if="${hadoopFile.get('isDir') == false}" class="font-weight-normal text-primary"
@@ -272,7 +270,7 @@
                                                         </button>
                                                     </div>
                                                     <div class="modal-body">
-                                                        <form th:id="${hadoopFile.get('hashCode')}" class="form-inline">
+                                                        <form th:if="${hadoopFile.get('isDir') == false}" th:id="${hadoopFile.get('hashCode')}" class="form-inline">
                                                             <div class="form-group" style="width: 100%;">
                                                                 <input th:id="'oldHdfsPath' + ${hadoopFile.get('hashCode')}"
                                                                        class="text-hide" name="oldHdfsPath" th:value="${hadoopFile.get('hdfsPath')}">
@@ -286,11 +284,29 @@
                                                                        th:value="${hadoopFile.get('fileName')}">
                                                             </div>
                                                         </form>
+                                                        <form th:if="${hadoopFile.get('isDir') == true}" th:id="${hadoopFile.get('htmlID')}" class="form-inline">
+                                                            <div class="form-group" style="width: 100%;">
+                                                                <input th:id="'oldHdfsPath' + ${hadoopFile.get('htmlID')}"
+                                                                       class="text-hide" name="oldHdfsPath" th:value="${hadoopFile.get('hdfsPath')}">
+                                                                <input th:id="'isDir' + ${hadoopFile.get('htmlID')}"
+                                                                       class="text-hide" name="isDir" th:value="${hadoopFile.get('isDir')}">
+                                                                <input th:id="'hashCode' + ${hadoopFile.get('htmlID')}"
+                                                                       class="text-hide" name="hashCode" th:value="${hadoopFile.get('htmlID')}">
+                                                                <input th:id="'newFileName' + ${hadoopFile.get('htmlID')}"
+                                                                       style="width: 100%;"
+                                                                       type="text" class="form-control" name="newFileName"
+                                                                       th:value="${hadoopFile.get('fileName')}">
+                                                            </div>
+                                                        </form>
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
                                                         <button type="button" class="btn btn-primary" data-dismiss="modal"
+                                                                th:if="${hadoopFile.get('isDir') == false}"
                                                                 th:onclick="rename([[${hadoopFile.get('hashCode')}]])">确定</button>
+                                                        <button type="button" class="btn btn-primary" data-dismiss="modal"
+                                                                th:if="${hadoopFile.get('isDir') == true}"
+                                                                th:onclick="rename([[${hadoopFile.get('htmlID')}]])">确定</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -411,19 +427,50 @@
                                 <li class="list-group-item">
                                     <div class="btn-toolbar" role="toolbar" style="float: left" aria-label="function">
                                         <div class="btn-group" role="group">
-                                            <button th:if="${sharedFile.isShareEncrypt() == false}" type="button" class="btn btn-outline-primary btn-sm" style="font-size: 14px"
-                                                    th:onclick="download([[${sharedFile.getHashCode()}]])">
-                                                下载
-                                            </button>
-                                            <form class="form-inline" th:if="${sharedFile.isShareEncrypt() == true}">
-                                                <div class="form-group mb-2">
-                                                    <input class="form-control" th:id="'code' + ${sharedFile.getHashCode()}" type="text" placeholder="请输入分享码">
+                                            <div class="btn-toolbar" role="toolbar" aria-label="function" style="float: right"
+                                                 th:if="${sharedFile.isShareEncrypt() == false}">
+                                                <div class="btn-group" role="group">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                                            th:onclick="save([[${sharedFile.getHashCode()}]])"
+                                                            style="font-size: 14px;">
+                                                        收藏
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                                            th:onclick="download([[${sharedFile.getHashCode()}]])"
+                                                            style="font-size: 14px">
+                                                        下载
+                                                    </button>
                                                 </div>
-                                                <button th:if="${sharedFile.isShareEncrypt() == true}" type="button" class="btn btn-outline-primary mb-2" style="font-size: 14px"
-                                                        th:onclick="verify([[${sharedFile.getHashCode()}]])">
-                                                    下载
-                                                </button>
-                                            </form>
+                                            </div>
+                                            <div class="btn-toolbar" role="toolbar" aria-label="function" style="float: right"
+                                                 th:if="${sharedFile.isShareEncrypt() == true}">
+                                                <div class="btn-group" role="group">
+                                                    <button th:id="saveShareButton + ${sharedFile.getHashCode()}" type="button"
+                                                            class="btn btn-outline-primary btn-sm"
+                                                            th:onclick="saveShare([[${sharedFile.getHashCode()}]])"
+                                                            style="font-size: 14px;">
+                                                        收藏
+                                                    </button>
+                                                    <form th:id="saveShareForm + ${sharedFile.getHashCode()}" style="margin-right: 8px; display: none;">
+                                                        <input class="form-control" type="text"
+                                                               th:id="saveShareInput + ${sharedFile.getHashCode()}"
+                                                               style="font-size: 11px; padding: 0 0 0 8px;"
+                                                               placeholder="请输入分享码">
+                                                    </form>
+                                                    <form th:id="downloadShareForm + ${sharedFile.getHashCode()}" style="margin-left: 8px; display: none;">
+                                                        <input class="form-control" type="text"
+                                                               th:id="downloadShareInput + ${sharedFile.getHashCode()}"
+                                                               style="font-size: 11px; padding: 0 0 0 8px;"
+                                                               placeholder="请输入分享码">
+                                                    </form>
+                                                    <button th:id="downloadShareButton + ${sharedFile.getHashCode()}" type="button"
+                                                            class="btn btn-outline-primary btn-sm"
+                                                            th:onclick="downloadShare([[${sharedFile.getHashCode()}]])"
+                                                            style="font-size: 14px">
+                                                        下载
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </li>
@@ -480,6 +527,9 @@
                     </div>
                 </div>
                 <!-- Deleted file list -->
+                <div class="card" th:if="${userDeletedFiles.size() == 0}">
+                    <div class="card-header" style="background: white; text-align: center;">没有文件</div>
+                </div>
                 <div class="card" th:each="deletedFile : ${userDeletedFiles}">
                     <div class="card-header" style="background-color: white" data-toggle="collapse" aria-expanded="true"
                          th:href="'#' + ${'a' + deletedFile.getHashCode().substring(0,5)}"
@@ -521,7 +571,6 @@
         </div>
     </div>
 </div>
-
 
 <link rel="stylesheet" href="../static/css/main.css">
 <script type="text/javascript" th:src="@{../static/js/main.js}"></script>

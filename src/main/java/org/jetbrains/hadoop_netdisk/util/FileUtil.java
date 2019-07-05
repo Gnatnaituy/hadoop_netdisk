@@ -13,7 +13,7 @@ import java.util.Objects;
  * @description
  */
 public class FileUtil {
-    private static final int HDFS_URL_LENGTH = 21;
+    private static final int HDFS_URL_LENGTH = "hdfs://localhost:9000".length();
     private static final int HASHCODE_LENGTH = 32;
 
     public static String getUserDownloadsDir() {
@@ -68,15 +68,15 @@ public class FileUtil {
 
     public static String getFileName(String hdfsPath, boolean isDir) {
         if (isDir) {
-            return hdfsPath.substring(hdfsPath.lastIndexOf('/') + 1);
+            return hdfsPath.substring(hdfsPath.substring(0, hdfsPath.length() - 1).lastIndexOf('/') + 1);
         } else {
-            return hdfsPath.substring(hdfsPath.lastIndexOf('/') + HASHCODE_LENGTH + 1);
+            return hdfsPath.substring(hdfsPath.lastIndexOf('/') + HASHCODE_LENGTH + 2);
         }
     }
 
     public static String exceptFileName(String hdfsPath, boolean isDir) {
         if (isDir) {
-            return hdfsPath.substring(0, hdfsPath.lastIndexOf('/') + 1);
+            return hdfsPath.substring(0, hdfsPath.lastIndexOf("/") + 1);
         } else {
             return hdfsPath.substring(0, hdfsPath.lastIndexOf('/') + HASHCODE_LENGTH + 2);
         }

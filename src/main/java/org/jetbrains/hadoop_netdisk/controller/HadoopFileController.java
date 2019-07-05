@@ -1,9 +1,9 @@
 package org.jetbrains.hadoop_netdisk.controller;
 
-import com.sun.org.apache.regexp.internal.REUtil;
 import org.jetbrains.hadoop_netdisk.entity.HadoopFile;
 import org.jetbrains.hadoop_netdisk.service.HadoopFileService;
 import org.jetbrains.hadoop_netdisk.service.HdfsService;
+import org.jetbrains.hadoop_netdisk.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -90,7 +91,7 @@ public class HadoopFileController {
      * Update shared files
      */
     @GetMapping("updateShare")
-    public String updateShare(Model model, HttpServletRequest request) {
+    public String updateShare(Model model) {
         List<HadoopFile> sharedFiles = hadoopFileService.getSharedFiles();
 
         model.addAttribute(SHARED_FILES, sharedFiles);
@@ -157,6 +158,23 @@ public class HadoopFileController {
     }
 
     /**
+     * Save shared file
+     */
+    @PostMapping("/save")
+    @ResponseBody
+    public String save(@RequestParam String hashCode, HttpServletRequest request) {
+        HadoopFile file = hadoopFileService.query(hashCode);
+        String currentUser = request.getSession().getAttribute(CURRENT_USER).toString();
+        String hdfsPath = file.getHdfsPath();
+        String fileName = hdfsPath.substring(hdfsPath.lastIndexOf("/") + 1);
+        String desFile = currentUser + "/我的收藏/" + fileName;
+
+        hadoopFileService.copy(hdfsPath, desFile);
+
+        return "success";
+    }
+
+    /**
      * Download file from Hadoop to Local directly
      */
     @PostMapping("/download")
@@ -173,7 +191,7 @@ public class HadoopFileController {
     public String mkdir(@RequestParam String directory, Model model, HttpServletRequest request) {
         String currentPath = request.getSession().getAttribute(CURRENT_PATH).toString();
 
-        hadoopFileService.mkdir(currentPath + "/" + directory);
+        hadoopFileService.mkdir(currentPath + directory);
 
         List<Map<String, Object>> userHadoopFiles = hdfsService.listFiles(currentPath, null);
         model.addAttribute(USER_HADOOP_FILES, userHadoopFiles);
@@ -186,10 +204,22 @@ public class HadoopFileController {
      */
     @GetMapping("/chdir")
     public String chdir(@RequestParam(value = "desPath") String desPath, Model model, HttpServletRequest request) {
+        logger.info(MessageFormat.format("CURRENT_PATH: {0}", request.getSession().getAttribute(CURRENT_PATH)));
         request.getSession().setAttribute(CURRENT_PATH, desPath);
+        logger.info(MessageFormat.format("DES_PATH:     {0}", desPath));
+
+        List<String[]> paths = new ArrayList<>();
+        StringBuilder absPath = new StringBuilder();
+        for (String path : desPath.split("/")) {
+            absPath.append(path).append("/");
+            logger.info(MessageFormat.format("path: {0} --> adsPath:  {1}", path, absPath));
+            paths.add(new String[]{path, absPath.toString()});
+        }
 
         List<Map<String, Object>> userHadoopFiles = hdfsService.listFiles(desPath, null);
+
         model.addAttribute(USER_HADOOP_FILES, userHadoopFiles);
+        model.addAttribute(PATHS, paths);
 
         return "main::file_manager_refresh";
     }
@@ -203,6 +233,8 @@ public class HadoopFileController {
                          Model model, HttpServletRequest request) {
         String currentPath = request.getSession().getAttribute(CURRENT_PATH).toString();
 
+        logger.info(MessageFormat.format("oldHdfsPath: {0}, newFileName: {1}, isDie: {2}, hashCode: {3}", oldHdfsPath
+                , newFileName, isDir, hashCode));
         hadoopFileService.rename(oldHdfsPath, newFileName, isDir, hashCode);
 
         List<Map<String, Object>> userHadoopFiles = hdfsService.listFiles(currentPath, null);
@@ -268,10 +300,10 @@ public class HadoopFileController {
      */
     @PostMapping("/restore")
     public String restore(@RequestParam String hashCode, Model model, HttpServletRequest request) {
-        // cancel delete from mysql
-        hadoopFileService.cancelFakeDelete(hashCode, request.getSession().getAttribute(CURRENT_USER).toString());
-        // update deleted file list
         String currentUser = request.getSession().getAttribute(CURRENT_USER).toString();
+        // cancel delete from mysql
+        hadoopFileService.cancelFakeDelete(hashCode, currentUser);
+        // update deleted file list
         List<HadoopFile> userDeletedFiles = hadoopFileService.getUserDeletedFiles(currentUser);
 
         model.addAttribute(USER_DELETED_FILES, userDeletedFiles);
@@ -299,6 +331,7 @@ public class HadoopFileController {
     @GetMapping("/emptyTrash")
     public String emptyTrash(Model model, HttpServletRequest request) {
         String currentUser = request.getSession().getAttribute(CURRENT_USER).toString();
+
         for (HadoopFile deletedFile : hadoopFileService.getUserDeletedFiles(currentUser)) {
             hadoopFileService.realDelete(deletedFile.getHashCode());
         }

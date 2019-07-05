@@ -29,6 +29,9 @@ public class HadoopFileServiceImpl implements HadoopFileService {
     private final HdfsService hdfsService;
     private final HadoopUserService hadoopUserService;
 
+    private final String CURRENT_USER = "currentUser";
+    private final String CURRENT_PATH = "currentPath";
+
     private final Logger logger = LoggerFactory.getLogger(HadoopFileServiceImpl.class);
 
     public HadoopFileServiceImpl(HadoopFileMapper hadoopFileMapper, HdfsService hdfsService, HadoopUserService hadoopUserService) {
@@ -37,9 +40,9 @@ public class HadoopFileServiceImpl implements HadoopFileService {
         this.hadoopUserService = hadoopUserService;
     }
 
-    public String getCurrentDir(HttpServletRequest request) {
+    public String getCurrentPath(HttpServletRequest request) {
 
-        return request.getSession().getAttribute("currentPath").toString();
+        return request.getSession().getAttribute(CURRENT_PATH).toString();
     }
 
     public HadoopFile query(String hashCode) {
@@ -53,6 +56,8 @@ public class HadoopFileServiceImpl implements HadoopFileService {
 
     public int rename(String oldHdfsPath, String newFileName, boolean isDir, String hashCode) {
         String newHdfsPath = FileUtil.exceptFileName(oldHdfsPath, isDir) + newFileName;
+        logger.info(MessageFormat.format("exceptFileName: {0}, newHdfsPath: {1}", FileUtil.exceptFileName(oldHdfsPath
+                , isDir), newHdfsPath));
 
         hdfsService.rename(FileUtil.getRelativePath(oldHdfsPath), FileUtil.getRelativePath(newHdfsPath));
 
@@ -157,6 +162,10 @@ public class HadoopFileServiceImpl implements HadoopFileService {
         localFile.delete();
 
         return uploadRes;
+    }
+
+    public int copy(String hdfsPath, String desFile) {
+        return hdfsService.copy(hdfsPath, desFile) ? 0 : 1;
     }
 
     public int download(String hashCode) {

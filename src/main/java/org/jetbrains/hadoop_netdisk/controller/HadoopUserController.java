@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import sun.awt.ModalExclude;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.MessageFormat;
@@ -29,7 +28,7 @@ public class HadoopUserController {
     private final HadoopUserService hadoopUserService;
     private final HdfsService hdfsService;
     private final HadoopFileService hadoopFileService;
-    
+
     private final String CURRENT_USER = "currentUser";
     private final String CURRENT_PATH = "currentPath";
     private final String PATHS = "paths";
@@ -55,7 +54,7 @@ public class HadoopUserController {
     @GetMapping("/main")
     public String main(Model model, HttpServletRequest request) {
         HadoopUser currentUser = hadoopUserService.getCurrentUser(request);
-        String currentPath = hadoopFileService.getCurrentDir(request);
+        String currentPath = hadoopFileService.getCurrentPath(request);
 
         List<String[]> paths = new ArrayList<>();
         StringBuilder absPath = new StringBuilder();
@@ -96,7 +95,7 @@ public class HadoopUserController {
      */
     @GetMapping("/updateNavbar")
     public String updateNavbar(Model model, HttpServletRequest request) {
-        String currentPath = hadoopFileService.getCurrentDir(request);
+        String currentPath = hadoopFileService.getCurrentPath(request);
 
         List<String[]> paths = new ArrayList<>();
         StringBuilder absPath = new StringBuilder();

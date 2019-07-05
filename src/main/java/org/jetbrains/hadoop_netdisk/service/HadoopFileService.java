@@ -13,7 +13,7 @@ import java.util.List;
  * @description
  */
 public interface HadoopFileService {
-    String getCurrentDir(HttpServletRequest request);
+    String getCurrentPath(HttpServletRequest request);
 
     HadoopFile query(String hashCode);
 
@@ -36,6 +36,8 @@ public interface HadoopFileService {
     String verifyShareCode(String hashCode, String code);
 
     int upload(String currentPath, MultipartFile multipartFile);
+
+    int copy(String hdfsPath, String desFile);
 
     int download(String hashCode);
 

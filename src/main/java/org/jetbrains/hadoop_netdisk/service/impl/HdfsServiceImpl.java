@@ -106,6 +106,28 @@ public class HdfsServiceImpl implements HdfsService {
     }
 
     /**
+     * Copy file
+     */
+    public boolean copy(String srcFile, String desFile) {
+        Path srcHdfsPath = new Path(srcFile);
+        Path desHdfsPath = new Path(generateHdfsPath(desFile));
+        FileSystem fileSystem = null;
+
+        try {
+            fileSystem = getFileSystem();
+            fileSystem.createSymlink(desHdfsPath, srcHdfsPath, false);
+
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            close(fileSystem);
+        }
+
+        return false;
+    }
+
+    /**
      * Download file from Hadoop
      */
     public void download(String srcFile, String desFile) {
@@ -267,15 +289,15 @@ public class HdfsServiceImpl implements HdfsService {
                         String lastModifiedDate =
                                 new SimpleDateFormat("MM-dd HH:mm").format(new Date(status.getModificationTime()));
 
-                        file.put("hdfsPath", status.getPath());
+                        file.put("hdfsPath", status.getPath().toString());
+                        file.put("relativePath", FileUtil.getRelativePath(status.getPath().toString()));
                         logger.info(MessageFormat.format("hdfsPath: {0}", status.getPath()));
                         file.put("lastModifiedDate", lastModifiedDate);
                         file.put("isDir", status.isDirectory());
 
                         if (status.isDirectory()) {
                             file.put("fileName", status.getPath().getName());
-                            file.put("htmlID", status.getPath().getName());
-                            file.put("idHref", "href" + status.getPath().getName());
+                            file.put("htmlID", "htmlID" + status.getPath().getName());
                         } else {
                             file.put("hashCode", status.getPath().getName().substring(0, 32));
                             file.put("htmlID", status.getPath().getName().substring(0, 5));

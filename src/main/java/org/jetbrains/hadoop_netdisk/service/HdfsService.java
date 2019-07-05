@@ -19,11 +19,13 @@ public interface HdfsService {
 
     boolean isDir(String path);
 
-    String upload(File srcFile, String desFile);
+    String upload(File srcFile, String desPath);
 
     void download(String srcFile, String desFile);
 
     boolean rename(String srcFile, String desFile);
+
+    boolean copy(String srcFile, String desFile);
 
     boolean fakeDelete(String path);
 
